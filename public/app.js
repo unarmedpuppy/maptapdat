@@ -13,7 +13,7 @@ class MaptapDashboard {
         this.currentFilters = {
             player: '',
             date: '',
-            sort: 'totalScore'
+            sort: 'avgScore'
         };
         
         this.charts = {};

@@ -66,8 +66,8 @@
             <div class="filter-group">
                 <label for="sort-filter">Sort by:</label>
                 <select id="sort-filter">
-                    <option value="totalScore">Total Score</option>
                     <option value="avgScore">Average Score</option>
+                    <option value="totalScore">Total Score</option>
                     <option value="perfectScores">Perfect Scores</option>
                     <option value="gamesPlayed">Games Played</option>
                 </select>
@@ -120,10 +120,6 @@
                     </div>
                 </div>
                 
-                <div class="chart-container">
-                    <canvas id="leaderboard-chart"></canvas>
-                </div>
-                
                 <div class="leaderboard-table">
                     <table id="leaderboard-table">
                         <thead>
@@ -139,6 +135,10 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="leaderboard-chart"></canvas>
                 </div>
             </section>
 

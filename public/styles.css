@@ -94,7 +94,7 @@ body {
 
 /* Header */
 .header {
-    background: var(--bg-secondary);
+    background: var(--accent-teal);
     border: 2px solid var(--border-color);
     border-style: double;
     padding: 1rem;
@@ -127,8 +127,8 @@ body {
 .title {
     font-size: 1.8rem;
     font-weight: bold;
-    color: var(--text-primary);
-    text-shadow: 0 0 10px currentColor;
+    color: var(--accent-pink);
+    text-shadow: 2px 2px 4px var(--accent-purple), 0 0 10px currentColor;
     animation: titleBlink 1.5s linear infinite;
     font-family: 'Courier New', monospace;
     margin: 0;
