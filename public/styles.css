@@ -193,6 +193,14 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Spinning Globe */
+.spinning-globe {
+    font-size: 3rem;
+    animation: iconSpin 4s linear infinite;
+    margin-right: 1rem;
+    text-shadow: 0 0 20px var(--accent-primary);
+}
+
 /* Theme Controls */
 .theme-controls {
     display: flex;

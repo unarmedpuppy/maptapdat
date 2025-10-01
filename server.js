@@ -26,6 +26,7 @@ function loadCSVData() {
                 }
                 
                 // Clean up the data
+                data.user = data.user.toLowerCase().trim();
                 data.location_score = parseInt(data.location_score);
                 data.total_score = parseInt(data.total_score);
                 data.location_number = parseInt(data.location_number);

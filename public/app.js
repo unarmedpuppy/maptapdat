@@ -102,6 +102,14 @@ class MaptapDashboard {
             this.data.dates = dates;
             this.data.analytics = analytics;
             
+            // Normalize user names to lowercase for consistency
+            this.data.games.forEach(game => {
+                game.user = game.user.toLowerCase().trim();
+            });
+            
+            // Update players list with normalized names
+            this.data.players = [...new Set(this.data.games.map(game => game.user))].sort();
+            
             this.populateFilters();
             this.applyFilters();
             this.hideLoading();
@@ -142,7 +150,7 @@ class MaptapDashboard {
         
         // Apply player filter
         if (this.currentFilters.player) {
-            filteredGames = filteredGames.filter(game => game.user === this.currentFilters.player);
+            filteredGames = filteredGames.filter(game => game.user.toLowerCase().trim() === this.currentFilters.player.toLowerCase().trim());
         }
         
         // Apply date filter
@@ -180,6 +188,9 @@ class MaptapDashboard {
         
         this.currentSection = sectionName;
         this.updateCurrentSection();
+        
+        // Scroll to top of the page instead of bottom
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
     handleHashChange() {
@@ -805,7 +816,7 @@ class MaptapDashboard {
         const themeIcon = document.querySelector('.theme-icon');
         const themeLabel = document.getElementById('theme-label');
         
-        themeIcon.textContent = '🌍';
+        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
         themeLabel.textContent = newTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     }
     
@@ -916,7 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeIcon = document.querySelector('.theme-icon');
     const themeLabel = document.getElementById('theme-label');
     
-    themeIcon.textContent = '🌍';
+        themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
     themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     
     // Initialize dashboard
