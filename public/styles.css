@@ -308,7 +308,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
-    padding-bottom: 200px; /* Extra scrolling distance */
+    padding-bottom: 250px; /* Extra scrolling distance to clear fixed widget */
     width: 100%;
 }
 
@@ -318,6 +318,11 @@ body {
 
 .section.active {
     display: block;
+}
+
+/* Ensure last section has extra space */
+.section:last-child {
+    padding-bottom: 50px;
 }
 
 .section-header {

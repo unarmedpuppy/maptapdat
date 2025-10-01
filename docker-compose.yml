@@ -21,7 +21,7 @@ services:
       - "traefik.http.routers.maptapdat.entrypoints=web"
       - "traefik.http.services.maptapdat.loadbalancer.server.port=3000"
       # Homepage integration
-      - "homepage.group=Games & Analytics"
+      - "homepage.group=Apps"
       - "homepage.name=Maptap Data"
       - "homepage.icon=🗺️"
       - "homepage.href=http://maptapdat.server.unarmedpuppy.com"
