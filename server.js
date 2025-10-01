@@ -20,10 +20,20 @@ function loadCSVData() {
         fs.createReadStream('data.csv')
             .pipe(csv())
             .on('data', (data) => {
+                // Skip entries with empty required fields
+                if (!data.user || !data.date || !data.location_number || !data.location_score || !data.total_score) {
+                    return;
+                }
+                
                 // Clean up the data
                 data.location_score = parseInt(data.location_score);
                 data.total_score = parseInt(data.total_score);
                 data.location_number = parseInt(data.location_number);
+                
+                // Skip if parsing failed (NaN values)
+                if (isNaN(data.location_score) || isNaN(data.total_score) || isNaN(data.location_number)) {
+                    return;
+                }
                 
                 results.push(data);
                 players.add(data.user);
@@ -67,15 +77,14 @@ app.get('/api/leaderboard', (req, res) => {
             userDailyTotals[key] = {
                 user: game.user,
                 date: game.date,
-                totalScore: 0,
+                totalScore: game.total_score, // Use the total_score from the game (same for all locations)
                 perfectScores: 0,
                 lowestScore: Infinity,
                 emojiCounts: {}
             };
         }
         
-        userDailyTotals[key].totalScore += game.total_score;
-        
+        // Only count perfect scores and lowest scores from individual locations
         if (game.location_score === 100) {
             userDailyTotals[key].perfectScores++;
         }
@@ -140,37 +149,42 @@ app.get('/api/trends', (req, res) => {
         filteredData = gameData.filter(game => game.user === player);
     }
     
-    // Group by date and calculate daily totals
+    // Group by date and user, then calculate daily totals
     const dailyTotals = {};
     filteredData.forEach(game => {
-        if (!dailyTotals[game.date]) {
-            dailyTotals[game.date] = {};
-        }
-        if (!dailyTotals[game.date][game.user]) {
-            dailyTotals[game.date][game.user] = {
+        const key = `${game.user}-${game.date}`;
+        if (!dailyTotals[key]) {
+            dailyTotals[key] = {
                 user: game.user,
                 date: game.date,
-                totalScore: 0,
-                gamesPlayed: 0,
-                avgScore: 0,
+                totalScore: game.total_score, // Use the total_score from the game
                 perfectScores: 0
             };
         }
         
-        dailyTotals[game.date][game.user].totalScore += game.total_score;
-        dailyTotals[game.date][game.user].gamesPlayed++;
-        
+        // Only count perfect scores from individual locations
         if (game.location_score === 100) {
-            dailyTotals[game.date][game.user].perfectScores++;
+            dailyTotals[key].perfectScores++;
         }
+    });
+    
+    // Convert to date-grouped format
+    const dateGroupedTotals = {};
+    Object.values(dailyTotals).forEach(gameData => {
+        if (!dateGroupedTotals[gameData.date]) {
+            dateGroupedTotals[gameData.date] = {};
+        }
+        dateGroupedTotals[gameData.date][gameData.user] = gameData;
     });
     
     // Calculate averages and flatten
     const trends = [];
-    Object.values(dailyTotals).forEach(dateData => {
-        Object.values(dateData).forEach(userData => {
-            userData.avgScore = Math.round(userData.totalScore / userData.gamesPlayed);
-            trends.push(userData);
+    Object.values(dailyTotals).forEach(gameData => {
+        trends.push({
+            user: gameData.user,
+            date: gameData.date,
+            totalScore: gameData.totalScore,
+            perfectScores: gameData.perfectScores
         });
     });
     
@@ -185,32 +199,65 @@ app.get('/api/player/:player', (req, res) => {
         return res.status(404).json({ error: 'Player not found' });
     }
     
-    // Calculate player statistics
-    const stats = {
-        user: player,
-        totalGames: playerData.length,
-        totalScore: playerData.reduce((sum, game) => sum + game.total_score, 0),
-        avgScore: Math.round(playerData.reduce((sum, game) => sum + game.total_score, 0) / playerData.length),
-        perfectScores: playerData.filter(game => game.location_score === 100).length,
-        lowestScore: Math.min(...playerData.map(game => game.location_score)),
-        highestScore: Math.max(...playerData.map(game => game.location_score)),
-        gamesByDate: {},
-        emojiCounts: {}
-    };
-    
-    // Group by date
+    // Group by date to get unique games
+    const gamesByDate = {};
     playerData.forEach(game => {
-        if (!stats.gamesByDate[game.date]) {
-            stats.gamesByDate[game.date] = [];
+        if (!gamesByDate[game.date]) {
+            gamesByDate[game.date] = {
+                totalScore: game.total_score,
+                perfectScores: 0,
+                lowestScore: Infinity,
+                highestScore: 0,
+                emojiCounts: {}
+            };
         }
-        stats.gamesByDate[game.date].push(game);
+        
+        // Track perfect scores and score ranges from individual locations
+        if (game.location_score === 100) {
+            gamesByDate[game.date].perfectScores++;
+        }
+        
+        if (game.location_score < gamesByDate[game.date].lowestScore) {
+            gamesByDate[game.date].lowestScore = game.location_score;
+        }
+        
+        if (game.location_score > gamesByDate[game.date].highestScore) {
+            gamesByDate[game.date].highestScore = game.location_score;
+        }
         
         // Count emojis
         if (game.location_emoji) {
-            stats.emojiCounts[game.location_emoji] = 
-                (stats.emojiCounts[game.location_emoji] || 0) + 1;
+            gamesByDate[game.date].emojiCounts[game.location_emoji] = 
+                (gamesByDate[game.date].emojiCounts[game.location_emoji] || 0) + 1;
         }
     });
+    
+    // Calculate overall statistics
+    const gameDates = Object.keys(gamesByDate);
+    const totalScore = gameDates.reduce((sum, date) => sum + gamesByDate[date].totalScore, 0);
+    const totalPerfectScores = gameDates.reduce((sum, date) => sum + gamesByDate[date].perfectScores, 0);
+    const allLowestScores = gameDates.map(date => gamesByDate[date].lowestScore);
+    const allHighestScores = gameDates.map(date => gamesByDate[date].highestScore);
+    
+    // Merge emoji counts across all games
+    const emojiCounts = {};
+    gameDates.forEach(date => {
+        Object.entries(gamesByDate[date].emojiCounts).forEach(([emoji, count]) => {
+            emojiCounts[emoji] = (emojiCounts[emoji] || 0) + count;
+        });
+    });
+    
+    const stats = {
+        user: player,
+        totalGames: gameDates.length,
+        totalScore: totalScore,
+        avgScore: Math.round(totalScore / gameDates.length),
+        perfectScores: totalPerfectScores,
+        lowestScore: Math.min(...allLowestScores),
+        highestScore: Math.max(...allHighestScores),
+        gamesByDate: gamesByDate,
+        emojiCounts: emojiCounts
+    };
     
     res.json(stats);
 });
@@ -221,28 +268,44 @@ app.get('/api/analytics', (req, res) => {
     const locationDifficulty = {};
     const perfectScoreUsers = {};
     
+    // Group by user-date to avoid double counting
+    const gameGroups = {};
     gameData.forEach(game => {
-        // Count emojis
-        if (game.location_emoji) {
-            emojiCounts[game.location_emoji] = (emojiCounts[game.location_emoji] || 0) + 1;
-        }
-        
-        // Track location difficulty (lower scores = harder)
-        if (!locationDifficulty[game.location_number]) {
-            locationDifficulty[game.location_number] = {
-                location: game.location_number,
-                totalScore: 0,
-                attempts: 0,
-                avgScore: 0
+        const key = `${game.user}-${game.date}`;
+        if (!gameGroups[key]) {
+            gameGroups[key] = {
+                user: game.user,
+                date: game.date,
+                locations: []
             };
         }
-        locationDifficulty[game.location_number].totalScore += game.location_score;
-        locationDifficulty[game.location_number].attempts++;
-        
-        // Track perfect scores by user
-        if (game.location_score === 100) {
-            perfectScoreUsers[game.user] = (perfectScoreUsers[game.user] || 0) + 1;
-        }
+        gameGroups[key].locations.push(game);
+    });
+    
+    Object.values(gameGroups).forEach(game => {
+        game.locations.forEach(location => {
+            // Count emojis
+            if (location.location_emoji) {
+                emojiCounts[location.location_emoji] = (emojiCounts[location.location_emoji] || 0) + 1;
+            }
+            
+            // Track location difficulty (lower scores = harder)
+            if (!locationDifficulty[location.location_number]) {
+                locationDifficulty[location.location_number] = {
+                    location: location.location_number,
+                    totalScore: 0,
+                    attempts: 0,
+                    avgScore: 0
+                };
+            }
+            locationDifficulty[location.location_number].totalScore += location.location_score;
+            locationDifficulty[location.location_number].attempts++;
+            
+            // Track perfect scores by user
+            if (location.location_score === 100) {
+                perfectScoreUsers[game.user] = (perfectScoreUsers[game.user] || 0) + 1;
+            }
+        });
     });
     
     // Calculate location averages
