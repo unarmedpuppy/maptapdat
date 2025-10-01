@@ -47,6 +47,7 @@
             <button class="nav-item" data-section="leaderboard">Leaderboard</button>
             <button class="nav-item" data-section="trends">Trends</button>
             <button class="nav-item" data-section="analytics">Analytics</button>
+            <button class="nav-item" data-section="rawdata">Raw Data</button>
         </nav>
 
         <!-- Filters -->
@@ -165,6 +166,38 @@
                         <h3>Perfect Score Leaders</h3>
                         <canvas id="perfect-leaders-chart"></canvas>
                     </div>
+                </div>
+            </section>
+
+            <!-- Raw Data Section -->
+            <section id="rawdata" class="section">
+                <div class="section-header">
+                    <h2>Raw CSV Data</h2>
+                    <div class="raw-data-controls">
+                        <button class="btn btn-secondary" id="export-csv">Export CSV</button>
+                        <button class="btn btn-secondary" id="refresh-data">Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="raw-data-info">
+                    <p>Total Records: <span id="total-records">-</span></p>
+                    <p>Last Updated: <span id="last-updated">-</span></p>
+                </div>
+                
+                <div class="raw-data-table-container">
+                    <table id="raw-data-table" class="raw-data-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Date</th>
+                                <th>Location #</th>
+                                <th>Location Score</th>
+                                <th>Total Score</th>
+                                <th>Emoji</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </section>
         </main>

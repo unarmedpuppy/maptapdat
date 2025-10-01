@@ -60,6 +60,15 @@ class MaptapDashboard {
             this.updateCurrentSection();
         });
         
+        // Raw data controls
+        document.getElementById('export-csv').addEventListener('click', () => {
+            this.exportCSV();
+        });
+        
+        document.getElementById('refresh-data').addEventListener('click', () => {
+            this.loadData();
+        });
+        
         // Leaderboard controls
         document.getElementById('overall-leaderboard').addEventListener('click', () => {
             this.currentFilters.date = '';
@@ -143,6 +152,9 @@ class MaptapDashboard {
                 break;
             case 'analytics':
                 this.updateAnalytics();
+                break;
+            case 'rawdata':
+                this.updateRawData();
                 break;
         }
     }
@@ -525,6 +537,81 @@ class MaptapDashboard {
     showError(message) {
         // Simple error display - could be enhanced
         alert(message);
+    }
+    
+    async updateRawData() {
+        // Update info
+        document.getElementById('total-records').textContent = this.data.games.length;
+        
+        // Find the most recent date from the CSV data
+        const mostRecentDate = this.getMostRecentDate();
+        document.getElementById('last-updated').textContent = mostRecentDate;
+        
+        // Update table
+        this.updateRawDataTable();
+    }
+    
+    getMostRecentDate() {
+        if (!this.data.games || this.data.games.length === 0) {
+            return 'No data available';
+        }
+        
+        // Find the most recent date
+        const dates = this.data.games.map(game => new Date(game.date));
+        const mostRecent = new Date(Math.max(...dates));
+        
+        return mostRecent.toLocaleDateString();
+    }
+    
+    updateRawDataTable() {
+        const tbody = document.querySelector('#raw-data-table tbody');
+        tbody.innerHTML = '';
+        
+        // Sort by date (newest first), then by user
+        const sortedGames = [...this.data.games].sort((a, b) => {
+            const dateCompare = new Date(b.date) - new Date(a.date);
+            if (dateCompare !== 0) return dateCompare;
+            return a.user.localeCompare(b.user);
+        });
+        
+        sortedGames.forEach(game => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${game.user}</td>
+                <td>${new Date(game.date).toLocaleDateString()}</td>
+                <td>${game.location_number}</td>
+                <td>${game.location_score}</td>
+                <td>${game.total_score}</td>
+                <td>${game.emoji || '🎯'}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    exportCSV() {
+        const headers = ['user', 'date', 'location_number', 'location_score', 'total_score', 'emoji'];
+        const csvContent = [
+            headers.join(','),
+            ...this.data.games.map(game => 
+                headers.map(header => {
+                    const value = game[header] || '';
+                    // Escape commas and quotes in CSV
+                    return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
+                        ? `"${value.replace(/"/g, '""')}"` 
+                        : value;
+                }).join(',')
+            )
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `maptap-data-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
     }
 }
 

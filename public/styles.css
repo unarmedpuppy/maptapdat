@@ -758,6 +758,100 @@ select:focus {
     outline-offset: 2px;
 }
 
+/* Raw Data Section */
+.raw-data-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.raw-data-info {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-style: double;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 2rem;
+    font-family: 'Courier New', monospace;
+}
+
+.raw-data-info p {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.raw-data-info span {
+    color: var(--accent-primary);
+    text-shadow: 0 0 5px currentColor;
+}
+
+.raw-data-table-container {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-style: double;
+    border-radius: 4px;
+    overflow-x: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.raw-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.raw-data-table th {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.raw-data-table td {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.raw-data-table tbody tr:nth-child(even) {
+    background: var(--bg-tertiary);
+}
+
+.raw-data-table tbody tr:hover {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+}
+
+.raw-data-table td:nth-child(1) { /* User column */
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+.raw-data-table td:nth-child(2) { /* Date column */
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.raw-data-table td:nth-child(3), /* Location # */
+.raw-data-table td:nth-child(4), /* Location Score */
+.raw-data-table td:nth-child(5) { /* Total Score */
+    text-align: center;
+    font-weight: bold;
+}
+
+.raw-data-table td:nth-child(6) { /* Emoji column */
+    text-align: center;
+    font-size: 1.2rem;
+}
+
 /* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
     width: 8px;
@@ -942,5 +1036,24 @@ select:focus {
     /* Always show overlay on mobile */
     .widget-overlay {
         opacity: 1;
+    }
+    
+    /* Raw data mobile adjustments */
+    .raw-data-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .raw-data-table {
+        font-size: 0.75rem;
+    }
+    
+    .raw-data-table th,
+    .raw-data-table td {
+        padding: 0.25rem;
+    }
+    
+    .raw-data-table-container {
+        max-height: 60vh;
     }
 }
