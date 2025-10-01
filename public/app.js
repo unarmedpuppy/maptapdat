@@ -82,6 +82,7 @@ class MaptapDashboard {
     }
     
     async loadData() {
+        console.log('Starting to load data...');
         try {
             const [games, players, dates, analytics] = await Promise.all([
                 fetch('/api/data').then(r => r.json()),
@@ -89,6 +90,8 @@ class MaptapDashboard {
                 fetch('/api/dates').then(r => r.json()),
                 fetch('/api/analytics').then(r => r.json())
             ]);
+            
+            console.log('Data loaded successfully:', { games: games.length, players: players.length, dates: dates.length });
             
             this.data.games = games;
             this.data.players = players;
@@ -878,6 +881,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize dashboard
     new MaptapDashboard();
-});
-
 });
