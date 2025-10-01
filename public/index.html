@@ -4,8 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🗺️ maptapdat - data from tappin' dat map daily</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20250101">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Cache buster for assets
+        const cacheBuster = Date.now();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update CSS link with cache buster
+            const cssLink = document.querySelector('link[href*="styles.css"]');
+            if (cssLink) {
+                cssLink.href = cssLink.href.split('?')[0] + '?v=' + cacheBuster;
+            }
+        });
+    </script>
 </head>
 <body>
     <!-- Retro "Under Construction" banner -->
@@ -182,6 +193,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=20250101"></script>
 </body>
 </html>
