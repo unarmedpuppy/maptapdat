@@ -16,22 +16,15 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      # HTTP to HTTPS redirect
-      - "traefik.http.routers.maptapdat-http.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.maptapdat-http.entrypoints=web"
-      - "traefik.http.routers.maptapdat-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # HTTPS configuration
+      # HTTP configuration
       - "traefik.http.routers.maptapdat.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.maptapdat.entrypoints=websecure"
-      - "traefik.http.routers.maptapdat.tls.certresolver=myresolver"
-      - "traefik.http.routers.maptapdat.tls=true"
+      - "traefik.http.routers.maptapdat.entrypoints=web"
       - "traefik.http.services.maptapdat.loadbalancer.server.port=3000"
       # Homepage integration
       - "homepage.group=Games & Analytics"
       - "homepage.name=Maptap Data"
       - "homepage.icon=🗺️"
-      - "homepage.href=https://maptapdat.server.unarmedpuppy.com"
+      - "homepage.href=http://maptapdat.server.unarmedpuppy.com"
       - "homepage.description=Maptap.gg score visualization dashboard"
 
 networks:
