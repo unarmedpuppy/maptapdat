@@ -161,8 +161,6 @@ class MaptapDashboard {
             document.getElementById('date-range').textContent = `${start} - ${end}`;
         }
         
-        // Create overview chart
-        await this.createOverviewChart();
     }
     
     async updateLeaderboard() {
@@ -215,130 +213,6 @@ class MaptapDashboard {
         this.createPerfectLeadersChart();
     }
     
-    async createOverviewChart() {
-        const ctx = document.getElementById('overview-chart').getContext('2d');
-        
-        // Destroy existing chart
-        if (this.charts.overview) {
-            this.charts.overview.destroy();
-        }
-        
-        // Get daily player totals and calculate rankings
-        const dailyPlayerTotals = {};
-        this.data.games.forEach(game => {
-            if (!dailyPlayerTotals[game.date]) {
-                dailyPlayerTotals[game.date] = {};
-            }
-            if (!dailyPlayerTotals[game.date][game.user]) {
-                dailyPlayerTotals[game.date][game.user] = 0;
-            }
-            dailyPlayerTotals[game.date][game.user] += game.total_score;
-        });
-        
-        // Get last 10 days
-        const sortedDates = this.data.dates.sort().slice(-10);
-        const labels = sortedDates.map(date => new Date(date).toLocaleDateString());
-        
-        // Calculate average daily rankings
-        const avgRankings = sortedDates.map(date => {
-            const dayTotals = dailyPlayerTotals[date];
-            if (!dayTotals) return 0;
-            
-            // Sort players by total score for that day (descending)
-            const sortedPlayers = Object.entries(dayTotals)
-                .sort(([,a], [,b]) => b - a)
-                .map(([player, score]) => ({ player, score }));
-            
-            // Calculate average ranking (1st place = 1, 2nd place = 2, etc.)
-            const totalRanking = sortedPlayers.reduce((sum, player, index) => {
-                return sum + (index + 1);
-            }, 0);
-            
-            return sortedPlayers.length > 0 ? (totalRanking / sortedPlayers.length).toFixed(1) : 0;
-        });
-        
-        const playerCounts = sortedDates.map(date => {
-            const dayTotals = dailyPlayerTotals[date];
-            return dayTotals ? Object.keys(dayTotals).length : 0;
-        });
-        
-        this.charts.overview = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Average Daily Ranking',
-                    data: avgRankings,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: '#8b5cf620',
-                    tension: 0.4,
-                    fill: false,
-                    yAxisID: 'y'
-                }, {
-                    label: 'Players Participating',
-                    data: playerCounts,
-                    type: 'bar',
-                    backgroundColor: '#f59e0b',
-                    borderColor: '#d97706',
-                    borderWidth: 1,
-                    borderRadius: 4,
-                    yAxisID: 'y1'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 2,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        reverse: true, // Lower ranking number = better (1st place is better than 2nd)
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Average Ranking'
-                        },
-                        grid: {
-                            color: 'rgba(0,0,0,0.1)'
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Players'
-                        },
-                        grid: {
-                            drawOnChartArea: false,
-                        },
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(0,0,0,0.1)'
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                }
-            }
-        });
-    }
     
     createLeaderboardChart() {
         const ctx = document.getElementById('leaderboard-chart').getContext('2d');
@@ -358,8 +232,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Total Score',
                     data: data,
-                    backgroundColor: '#8b5cf6',
-                    borderColor: '#7c3aed',
+                    backgroundColor: '#ff00ff',
+                    borderColor: '#ff0080',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -427,7 +301,7 @@ class MaptapDashboard {
         
         const labels = [...new Set(this.data.trends.map(t => t.date))].sort();
         const datasets = [];
-        const colors = ['#8b5cf6', '#a855f7', '#c084fc', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'];
+        const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff8000', '#ff0000', '#00ff00', '#8000ff'];
         
         Object.entries(playerTrends).forEach(([player, trends], index) => {
             const data = labels.map(date => {
@@ -503,8 +377,8 @@ class MaptapDashboard {
                 datasets: [{
                     data: data,
                     backgroundColor: [
-                        '#8b5cf6', '#a855f7', '#c084fc', '#f59e0b', '#ef4444',
-                        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
+                        '#ff00ff', '#00ffff', '#ffff00', '#ff8000', '#ff0000',
+                        '#00ff00', '#8000ff', '#ff0080', '#00ff80', '#8080ff'
                     ]
                 }]
             },
@@ -516,8 +390,11 @@ class MaptapDashboard {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            padding: 20,
-                            usePointStyle: true
+                            padding: 10,
+                            usePointStyle: true,
+                            font: {
+                                size: 10
+                            }
                         }
                     }
                 }
@@ -543,8 +420,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Average Score',
                     data: data,
-                    backgroundColor: '#10b981',
-                    borderColor: '#059669',
+                    backgroundColor: '#00ff00',
+                    borderColor: '#008000',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -552,7 +429,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                aspectRatio: 2,
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         display: false
@@ -594,8 +471,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Perfect Scores',
                     data: data,
-                    backgroundColor: '#f59e0b',
-                    borderColor: '#d97706',
+                    backgroundColor: '#ffff00',
+                    borderColor: '#ff8000',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -603,7 +480,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                aspectRatio: 2,
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         display: false

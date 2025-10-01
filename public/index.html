@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maptap Data Dashboard</title>
+    <title>🗺️ Maptap Data Dashboard - Under Construction</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Retro "Under Construction" banner -->
+    <div class="construction-banner">
+        <marquee behavior="scroll" direction="left">
+            🚧 UNDER CONSTRUCTION 🚧 BEST VIEWED WITH INTERNET EXPLORER 🚧 COOL SITE 🚧
+        </marquee>
+    </div>
     <div class="app">
         <!-- Header -->
         <header class="header">
@@ -91,11 +94,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="chart-container">
-                    <h3>Recent Performance Trends</h3>
-                    <canvas id="overview-chart"></canvas>
-                </div>
             </section>
 
             <!-- Leaderboard Section -->
@@ -161,6 +159,23 @@
         <div id="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>Loading data...</p>
+        </div>
+    </div>
+
+    <!-- Retro Maptap Widget -->
+    <div class="maptap-widget" onclick="window.open('https://maptap.gg', '_blank')">
+        <div class="widget-header">
+            <span class="widget-title">🗺️ Play MapTap!</span>
+            <span class="widget-subtitle">Daily Geography Game</span>
+        </div>
+        <iframe 
+            src="https://maptap.gg" 
+            class="widget-iframe"
+            title="MapTap Game"
+            loading="lazy">
+        </iframe>
+        <div class="widget-overlay">
+            <div class="play-button">🎮 CLICK TO PLAY!</div>
         </div>
     </div>
 
