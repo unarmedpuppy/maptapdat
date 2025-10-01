@@ -1,20 +1,20 @@
 /* CSS Variables for Geocities theming */
 :root {
     --bg-primary: #000000;
-    --bg-secondary: #000033;
-    --bg-tertiary: #000066;
-    --text-primary: #00ff00;
-    --text-secondary: #00ffff;
-    --text-muted: #ff00ff;
-    --border-color: #00ff00;
-    --accent-primary: #ff00ff;
-    --accent-secondary: #ffff00;
-    --success: #00ff00;
-    --warning: #ffff00;
-    --error: #ff0000;
-    --shadow-sm: 0 0 5px #00ff00;
-    --shadow-md: 0 0 10px #ff00ff, 0 0 20px #00ffff;
-    --shadow-lg: 0 0 15px #ffff00, 0 0 30px #ff00ff;
+    --bg-secondary: #001122;
+    --bg-tertiary: #002244;
+    --text-primary: #00cc00;
+    --text-secondary: #00cccc;
+    --text-muted: #cc00cc;
+    --border-color: #00cc00;
+    --accent-primary: #cc00cc;
+    --accent-secondary: #cccc00;
+    --success: #00cc00;
+    --warning: #cccc00;
+    --error: #cc0000;
+    --shadow-sm: 0 0 5px #00cc00;
+    --shadow-md: 0 0 10px #cc00cc, 0 0 20px #00cccc;
+    --shadow-lg: 0 0 15px #cccc00, 0 0 30px #cc00cc;
     --radius-sm: 0px;
     --radius-md: 0px;
     --radius-lg: 0px;
@@ -22,20 +22,20 @@
 
 [data-theme="light"] {
     --bg-primary: #ffffff;
-    --bg-secondary: #ffffcc;
+    --bg-secondary: #ffeecc;
     --bg-tertiary: #ffccff;
-    --text-primary: #0000ff;
-    --text-secondary: #ff0000;
+    --text-primary: #0000cc;
+    --text-secondary: #cc0000;
     --text-muted: #800080;
-    --border-color: #0000ff;
-    --accent-primary: #ff0000;
-    --accent-secondary: #ff8000;
+    --border-color: #0000cc;
+    --accent-primary: #cc0000;
+    --accent-secondary: #cc8000;
     --success: #008000;
-    --warning: #ff8000;
-    --error: #ff0000;
-    --shadow-sm: 0 0 5px #0000ff;
-    --shadow-md: 0 0 10px #ff0000, 0 0 20px #800080;
-    --shadow-lg: 0 0 15px #ff8000, 0 0 30px #ff0000;
+    --warning: #cc8000;
+    --error: #cc0000;
+    --shadow-sm: 0 0 5px #0000cc;
+    --shadow-md: 0 0 10px #cc0000, 0 0 20px #800080;
+    --shadow-lg: 0 0 15px #cc8000, 0 0 30px #cc0000;
 }
 
 /* Reset and base styles */
@@ -745,11 +745,11 @@ select:focus {
     width: 280px;
     height: 200px;
     background: var(--bg-secondary);
-    border: 3px solid #00ffff;
+    border: 3px solid #00cccc;
     border-style: double;
     box-shadow: 
-        0 0 15px #00ffff,
-        0 0 30px #ff00ff,
+        0 0 15px #00cccc,
+        0 0 30px #cc00cc,
         0 10px 20px rgba(0, 0, 0, 0.5);
     cursor: pointer;
     z-index: 1000;
@@ -761,21 +761,21 @@ select:focus {
 @keyframes widgetPulse {
     0% { 
         box-shadow: 
-            0 0 15px #00ffff,
-            0 0 30px #ff00ff,
+            0 0 15px #00cccc,
+            0 0 30px #cc00cc,
             0 10px 20px rgba(0, 0, 0, 0.5);
     }
     100% { 
         box-shadow: 
-            0 0 25px #00ffff,
-            0 0 50px #ff00ff,
+            0 0 25px #00cccc,
+            0 0 50px #cc00cc,
             0 15px 30px rgba(0, 0, 0, 0.7);
     }
 }
 
 .maptap-widget:hover {
     transform: scale(1.05);
-    border-color: #ff00ff;
+    border-color: #cc00cc;
     animation: widgetHover 0.5s ease-in-out infinite alternate;
 }
 
@@ -785,10 +785,10 @@ select:focus {
 }
 
 .widget-header {
-    background: linear-gradient(45deg, #00ffff, #ff00ff);
+    background: linear-gradient(45deg, #00cccc, #cc00cc);
     padding: 8px;
     text-align: center;
-    border-bottom: 2px solid #00ffff;
+    border-bottom: 2px solid #00cccc;
 }
 
 .widget-title {
@@ -836,7 +836,7 @@ select:focus {
 }
 
 .play-button {
-    background: linear-gradient(45deg, #ff00ff, #00ffff);
+    background: linear-gradient(45deg, #cc00cc, #00cccc);
     color: #000000;
     padding: 8px 16px;
     border: 2px solid #ffffff;
