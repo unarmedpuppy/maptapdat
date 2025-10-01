@@ -288,6 +288,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         position: 'top',
@@ -366,6 +367,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         display: false
@@ -452,6 +454,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         position: 'top',
@@ -508,6 +511,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 1,
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -548,6 +552,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         display: false
@@ -598,6 +603,7 @@ class MaptapDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         display: false

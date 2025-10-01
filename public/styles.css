@@ -274,6 +274,8 @@ body {
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    height: 400px; /* Fixed height */
+    position: relative;
 }
 
 .chart-container h3 {
@@ -281,6 +283,11 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 1rem;
+}
+
+.chart-container canvas {
+    max-height: 350px !important;
+    height: 350px !important;
 }
 
 /* Leaderboard table */

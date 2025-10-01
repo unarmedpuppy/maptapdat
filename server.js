@@ -59,12 +59,44 @@ app.get('/api/leaderboard', (req, res) => {
         filteredData = gameData.filter(game => game.date === date);
     }
     
-    // Group by user and calculate totals
-    const userTotals = {};
+    // Group by user and date, then calculate totals
+    const userDailyTotals = {};
     filteredData.forEach(game => {
-        if (!userTotals[game.user]) {
-            userTotals[game.user] = {
+        const key = `${game.user}-${game.date}`;
+        if (!userDailyTotals[key]) {
+            userDailyTotals[key] = {
                 user: game.user,
+                date: game.date,
+                totalScore: 0,
+                perfectScores: 0,
+                lowestScore: Infinity,
+                emojiCounts: {}
+            };
+        }
+        
+        userDailyTotals[key].totalScore += game.total_score;
+        
+        if (game.location_score === 100) {
+            userDailyTotals[key].perfectScores++;
+        }
+        
+        if (game.location_score < userDailyTotals[key].lowestScore) {
+            userDailyTotals[key].lowestScore = game.location_score;
+        }
+        
+        // Count emojis
+        if (game.location_emoji) {
+            userDailyTotals[key].emojiCounts[game.location_emoji] = 
+                (userDailyTotals[key].emojiCounts[game.location_emoji] || 0) + 1;
+        }
+    });
+    
+    // Aggregate by user
+    const userTotals = {};
+    Object.values(userDailyTotals).forEach(dailyData => {
+        if (!userTotals[dailyData.user]) {
+            userTotals[dailyData.user] = {
+                user: dailyData.user,
                 totalScore: 0,
                 gamesPlayed: 0,
                 avgScore: 0,
@@ -74,22 +106,19 @@ app.get('/api/leaderboard', (req, res) => {
             };
         }
         
-        userTotals[game.user].totalScore += game.total_score;
-        userTotals[game.user].gamesPlayed++;
+        userTotals[dailyData.user].totalScore += dailyData.totalScore;
+        userTotals[dailyData.user].gamesPlayed++;
+        userTotals[dailyData.user].perfectScores += dailyData.perfectScores;
         
-        if (game.location_score === 100) {
-            userTotals[game.user].perfectScores++;
+        if (dailyData.lowestScore < userTotals[dailyData.user].lowestScore) {
+            userTotals[dailyData.user].lowestScore = dailyData.lowestScore;
         }
         
-        if (game.location_score < userTotals[game.user].lowestScore) {
-            userTotals[game.user].lowestScore = game.location_score;
-        }
-        
-        // Count emojis
-        if (game.location_emoji) {
-            userTotals[game.user].emojiCounts[game.location_emoji] = 
-                (userTotals[game.user].emojiCounts[game.location_emoji] || 0) + 1;
-        }
+        // Merge emoji counts
+        Object.entries(dailyData.emojiCounts).forEach(([emoji, count]) => {
+            userTotals[dailyData.user].emojiCounts[emoji] = 
+                (userTotals[dailyData.user].emojiCounts[emoji] || 0) + count;
+        });
     });
     
     // Calculate averages
