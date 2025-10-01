@@ -517,7 +517,7 @@ class MaptapDashboard {
         // Calculate emoji frequency from games data
         const emojiCounts = {};
         games.forEach(game => {
-            const emoji = game.emoji || '🎯';
+            const emoji = game.location_emoji || '🎯';
             emojiCounts[emoji] = (emojiCounts[emoji] || 0) + 1;
         });
         
@@ -632,11 +632,20 @@ class MaptapDashboard {
                         },
                         grid: {
                             color: '#00b8ff'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Days',
+                            color: '#00ff00',
+                            font: {
+                                family: 'Courier New',
+                                size: 12
+                            }
                         }
                     },
                     x: {
                         ticks: {
-                            color: '#00ff00',
+                            color: '#000080',
                             font: {
                                 family: 'Courier New',
                                 size: 10
@@ -837,14 +846,14 @@ class MaptapDashboard {
                 <td>${game.location_number}</td>
                 <td>${game.location_score}</td>
                 <td>${game.total_score}</td>
-                <td>${game.emoji || '🎯'}</td>
+                <td>${game.location_emoji || '🎯'}</td>
             `;
             tbody.appendChild(row);
         });
     }
     
     exportCSV() {
-        const headers = ['user', 'date', 'location_number', 'location_score', 'total_score', 'emoji'];
+        const headers = ['user', 'date', 'location_number', 'location_score', 'location_emoji', 'total_score'];
         const csvContent = [
             headers.join(','),
             ...this.data.games.map(game => 
