@@ -335,7 +335,7 @@ class MaptapDashboard {
         const dataToUse = this.filteredData || this.data;
         
         this.createEmojiChart(dataToUse.games);
-        this.createDifficultyChart(dataToUse.games);
+        this.createStreaksChart(dataToUse.games);
         this.createPerfectLeadersChart(dataToUse.games);
     }
     
@@ -549,7 +549,20 @@ class MaptapDashboard {
                             padding: 10,
                             usePointStyle: true,
                             font: {
-                                size: 10
+                                size: 10,
+                                family: 'Courier New'
+                            },
+                            color: '#00ff00'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const emoji = context.label;
+                                const count = context.parsed;
+                                const total = data.reduce((a, b) => a + b, 0);
+                                const percentage = ((count / total) * 100).toFixed(1);
+                                return `${emoji}: ${count} (${percentage}%)`;
                             }
                         }
                     }
@@ -558,48 +571,33 @@ class MaptapDashboard {
         });
     }
     
-    createDifficultyChart(games = this.data.games) {
-        const ctx = document.getElementById('difficulty-chart').getContext('2d');
+    createStreaksChart(games = this.data.games) {
+        const ctx = document.getElementById('streaks-chart').getContext('2d');
         
-        if (this.charts.difficulty) {
-            this.charts.difficulty.destroy();
+        if (this.charts.streaks) {
+            this.charts.streaks.destroy();
         }
         
-        // Calculate location difficulty from games data
-        const locationStats = {};
-        games.forEach(game => {
-            const location = `Location ${game.location_number}`;
-            if (!locationStats[location]) {
-                locationStats[location] = {
-                    location: location,
-                    totalScore: 0,
-                    count: 0
-                };
-            }
-            locationStats[location].totalScore += game.location_score;
-            locationStats[location].count += 1;
-        });
+        // Calculate user streaks (consecutive days played)
+        const userStreaks = this.calculateUserStreaks(games);
         
-        const difficultyData = Object.values(locationStats)
-            .map(stat => ({
-                location: stat.location,
-                avgScore: Math.round(stat.totalScore / stat.count)
-            }))
-            .sort((a, b) => a.avgScore - b.avgScore);
+        const streaksData = userStreaks
+            .sort((a, b) => b.maxStreak - a.maxStreak)
+            .slice(0, 10);
             
-        const labels = difficultyData.map(item => item.location);
-        const data = difficultyData.map(item => item.avgScore);
+        const labels = streaksData.map(item => item.user);
+        const data = streaksData.map(item => item.maxStreak);
         
-        this.charts.difficulty = new Chart(ctx, {
+        this.charts.streaks = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Average Score',
+                    label: 'Max Streak (Days)',
                     data: data,
-                    backgroundColor: '#00fff9',
-                    borderColor: '#00b8ff',
-                    borderWidth: 1,
+                    backgroundColor: '#ff00c1',
+                    borderColor: '#9600ff',
+                    borderWidth: 2,
                     borderRadius: 4
                 }]
             },
@@ -610,24 +608,92 @@ class MaptapDashboard {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Max Streak: ${context.parsed.y} days`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#00ff00',
+                            font: {
+                                family: 'Courier New'
+                            }
+                        },
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: '#00b8ff'
                         }
                     },
                     x: {
+                        ticks: {
+                            color: '#00ff00',
+                            font: {
+                                family: 'Courier New',
+                                size: 10
+                            }
+                        },
                         grid: {
-                            display: false
+                            color: '#00b8ff'
                         }
                     }
                 }
             }
         });
+    }
+    
+    calculateUserStreaks(games) {
+        // Group games by user and date
+        const userGames = {};
+        games.forEach(game => {
+            if (!userGames[game.user]) {
+                userGames[game.user] = [];
+            }
+            userGames[game.user].push(game.date);
+        });
+        
+        // Calculate streaks for each user
+        const userStreaks = [];
+        
+        Object.entries(userGames).forEach(([user, dates]) => {
+            // Remove duplicates and sort dates
+            const uniqueDates = [...new Set(dates)].sort();
+            
+            let maxStreak = 0;
+            let currentStreak = 1;
+            
+            for (let i = 1; i < uniqueDates.length; i++) {
+                const prevDate = new Date(uniqueDates[i - 1]);
+                const currentDate = new Date(uniqueDates[i]);
+                const dayDiff = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
+                
+                if (dayDiff === 1) {
+                    // Consecutive day
+                    currentStreak++;
+                } else {
+                    // Streak broken
+                    maxStreak = Math.max(maxStreak, currentStreak);
+                    currentStreak = 1;
+                }
+            }
+            
+            // Check final streak
+            maxStreak = Math.max(maxStreak, currentStreak);
+            
+            userStreaks.push({
+                user: user,
+                maxStreak: maxStreak,
+                totalDays: uniqueDates.length
+            });
+        });
+        
+        return userStreaks;
     }
     
     createPerfectLeadersChart(games = this.data.games) {
@@ -812,4 +878,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize dashboard
     new MaptapDashboard();
+});
+
 });
