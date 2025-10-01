@@ -556,11 +556,17 @@ class MaptapDashboard {
             return 'No data available';
         }
         
-        // Find the most recent date
-        const dates = this.data.games.map(game => new Date(game.date));
-        const mostRecent = new Date(Math.max(...dates));
+        // Find the most recent date by comparing date strings directly
+        // This avoids potential timezone issues with Date parsing
+        const dateStrings = this.data.games.map(game => game.date);
+        const uniqueDates = [...new Set(dateStrings)]; // Remove duplicates
+        const sortedDates = uniqueDates.sort().reverse(); // Sort descending (newest first)
         
-        return mostRecent.toLocaleDateString();
+        const mostRecentDateString = sortedDates[0];
+        
+        // Parse and format the date
+        const date = new Date(mostRecentDateString);
+        return date.toLocaleDateString();
     }
     
     updateRawDataTable() {
