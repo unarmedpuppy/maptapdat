@@ -236,11 +236,11 @@ app.get('/api/analytics', (req, res) => {
             .sort((a, b) => b.count - a.count),
         locationDifficulty: sortedLocations,
         perfectScoreLeaders: sortedPerfectUsers,
-        totalGames: gameData.length,
+        totalGames: dates.size, // Count unique dates, not individual records
         uniquePlayers: players.size,
         dateRange: {
-            start: Math.min(...Array.from(dates)),
-            end: Math.max(...Array.from(dates))
+            start: Array.from(dates).sort()[0],
+            end: Array.from(dates).sort().slice(-1)[0]
         }
     });
 });

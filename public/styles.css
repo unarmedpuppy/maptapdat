@@ -7,8 +7,8 @@
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
     --border-color: #e2e8f0;
-    --accent-primary: #3b82f6;
-    --accent-secondary: #8b5cf6;
+    --accent-primary: #8b5cf6;
+    --accent-secondary: #a855f7;
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
@@ -28,8 +28,8 @@
     --text-secondary: #cbd5e1;
     --text-muted: #64748b;
     --border-color: #334155;
-    --accent-primary: #60a5fa;
-    --accent-secondary: #a78bfa;
+    --accent-primary: #a855f7;
+    --accent-secondary: #c084fc;
 }
 
 /* Reset and base styles */

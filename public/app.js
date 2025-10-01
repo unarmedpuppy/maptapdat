@@ -223,47 +223,58 @@ class MaptapDashboard {
             this.charts.overview.destroy();
         }
         
-        // Get recent daily totals
-        const dailyTotals = {};
+        // Get daily average scores across all players
+        const dailyStats = {};
         this.data.games.forEach(game => {
-            if (!dailyTotals[game.date]) {
-                dailyTotals[game.date] = {};
+            if (!dailyStats[game.date]) {
+                dailyStats[game.date] = {
+                    totalScore: 0,
+                    gameCount: 0,
+                    players: new Set()
+                };
             }
-            if (!dailyTotals[game.date][game.user]) {
-                dailyTotals[game.date][game.user] = 0;
-            }
-            dailyTotals[game.date][game.user] += game.total_score;
+            dailyStats[game.date].totalScore += game.total_score;
+            dailyStats[game.date].gameCount++;
+            dailyStats[game.date].players.add(game.user);
         });
         
-        // Get last 7 days
-        const sortedDates = this.data.dates.sort().slice(-7);
+        // Get last 10 days
+        const sortedDates = this.data.dates.sort().slice(-10);
         const labels = sortedDates.map(date => new Date(date).toLocaleDateString());
         
-        // Calculate average scores per day
-        const datasets = [];
-        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'];
+        // Calculate daily averages
+        const avgScores = sortedDates.map(date => {
+            const stats = dailyStats[date];
+            return stats ? Math.round(stats.totalScore / stats.gameCount) : 0;
+        });
         
-        this.data.players.slice(0, 7).forEach((player, index) => {
-            const data = sortedDates.map(date => {
-                const dayData = dailyTotals[date];
-                return dayData && dayData[player] ? dayData[player] : 0;
-            });
-            
-            datasets.push({
-                label: player,
-                data: data,
-                borderColor: colors[index % colors.length],
-                backgroundColor: colors[index % colors.length] + '20',
-                tension: 0.4,
-                fill: false
-            });
+        const playerCounts = sortedDates.map(date => {
+            const stats = dailyStats[date];
+            return stats ? stats.players.size : 0;
         });
         
         this.charts.overview = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: labels,
-                datasets: datasets
+                datasets: [{
+                    label: 'Daily Average Score',
+                    data: avgScores,
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#7c3aed',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Players Participating',
+                    data: playerCounts,
+                    type: 'line',
+                    borderColor: '#f59e0b',
+                    backgroundColor: '#f59e0b20',
+                    tension: 0.4,
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
             },
             options: {
                 responsive: true,
@@ -279,10 +290,31 @@ class MaptapDashboard {
                 },
                 scales: {
                     y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
                         beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Average Score'
+                        },
                         grid: {
                             color: 'rgba(0,0,0,0.1)'
                         }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Players'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
                     },
                     x: {
                         grid: {
@@ -316,8 +348,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Total Score',
                     data: data,
-                    backgroundColor: '#3b82f6',
-                    borderColor: '#2563eb',
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#7c3aed',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -384,7 +416,7 @@ class MaptapDashboard {
         
         const labels = [...new Set(this.data.trends.map(t => t.date))].sort();
         const datasets = [];
-        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'];
+        const colors = ['#8b5cf6', '#a855f7', '#c084fc', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'];
         
         Object.entries(playerTrends).forEach(([player, trends], index) => {
             const data = labels.map(date => {
@@ -459,7 +491,7 @@ class MaptapDashboard {
                 datasets: [{
                     data: data,
                     backgroundColor: [
-                        '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+                        '#8b5cf6', '#a855f7', '#c084fc', '#f59e0b', '#ef4444',
                         '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
                     ]
                 }]
