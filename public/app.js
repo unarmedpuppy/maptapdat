@@ -281,6 +281,8 @@ class MaptapDashboard {
     }
     
     calculateLeaderboard(games) {
+        console.log('Calculating leaderboard for', games.length, 'games');
+        
         // Group games by user-date to get unique games per user
         const userGames = {};
         
@@ -296,6 +298,8 @@ class MaptapDashboard {
             }
             userGames[key].locationScores.push(game.location_score);
         });
+        
+        console.log('Grouped into', Object.keys(userGames).length, 'unique games');
         
         // Calculate stats for each user
         const userStats = {};
@@ -327,15 +331,37 @@ class MaptapDashboard {
         });
         
         // Convert to array and calculate averages
-        return Object.values(userStats).map(user => ({
-            user: user.user,
-            totalScore: user.totalScore,
-            avgScore: Math.round(user.totalScore / user.gamesPlayed),
-            gamesPlayed: user.gamesPlayed,
-            perfectScores: user.perfectScores,
-            lowestScore: user.lowestScore === Infinity ? 0 : user.lowestScore,
-            highestScore: user.highestScore
-        }));
+        const result = Object.values(userStats).map(user => {
+            const avgScore = Math.round(user.totalScore / user.gamesPlayed);
+            
+            // Debug: Show individual game scores for this user
+            console.log(`\n=== ${user.user.toUpperCase()} ===`);
+            console.log(`Total Score: ${user.totalScore}`);
+            console.log(`Games Played: ${user.gamesPlayed}`);
+            console.log(`Average Score: ${avgScore}`);
+            console.log('Individual Games:');
+            
+            // Show each game for this user
+            Object.values(userGames)
+                .filter(game => game.user === user.user)
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .forEach(game => {
+                    console.log(`  ${game.date}: ${game.totalScore} points`);
+                });
+            
+            return {
+                user: user.user,
+                totalScore: user.totalScore,
+                avgScore: avgScore,
+                gamesPlayed: user.gamesPlayed,
+                perfectScores: user.perfectScores,
+                lowestScore: user.lowestScore === Infinity ? 0 : user.lowestScore,
+                highestScore: user.highestScore
+            };
+        });
+        
+        console.log('Final leaderboard:', result);
+        return result;
     }
     
     async updateTrends() {
