@@ -193,15 +193,62 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Theme Controls */
+.theme-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.theme-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    text-shadow: 0 0 5px currentColor;
+    font-weight: bold;
+}
+
+.theme-toggle {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    border-style: outset;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+    border-style: inset;
+}
+
+.theme-icon {
+    font-size: 1.2rem;
+    animation: iconSpin 4s linear infinite;
+}
+
+@keyframes iconSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Navigation */
 .nav {
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
     border-style: double;
-    padding: 0 1rem;
+    padding: 1rem;
+    margin: 1.5rem 0;
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
     box-shadow: var(--shadow-sm);

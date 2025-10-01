@@ -328,31 +328,28 @@ class MaptapDashboard {
     }
     
     calculateTrends(games) {
-        // Group by date and calculate daily averages
-        const dailyStats = {};
+        console.log('Calculating trends for', games.length, 'games');
+        
+        // Group by user-date to get individual game scores
+        const userGameScores = {};
         
         games.forEach(game => {
-            if (!dailyStats[game.date]) {
-                dailyStats[game.date] = {
+            const key = `${game.user}-${game.date}`;
+            if (!userGameScores[key]) {
+                userGameScores[key] = {
+                    user: game.user,
                     date: game.date,
-                    totalScore: 0,
-                    count: 0,
-                    players: new Set()
+                    totalScore: game.total_score
                 };
             }
-            dailyStats[game.date].totalScore += game.total_score;
-            dailyStats[game.date].count += 1;
-            dailyStats[game.date].players.add(game.user);
         });
         
-        // Convert to array and calculate averages
-        return Object.values(dailyStats)
-            .map(day => ({
-                date: day.date,
-                avgScore: Math.round(day.totalScore / day.count),
-                players: day.players.size
-            }))
+        // Convert to array and sort by date
+        const trends = Object.values(userGameScores)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+        console.log('Calculated trends:', trends);
+        return trends;
     }
     
     updateAnalytics() {
@@ -458,6 +455,12 @@ class MaptapDashboard {
         
         if (this.charts.trends) {
             this.charts.trends.destroy();
+        }
+        
+        // Check if trends data exists
+        if (!this.data.trends || this.data.trends.length === 0) {
+            console.warn('No trends data available');
+            return;
         }
         
         // Group trends by player
@@ -800,7 +803,10 @@ class MaptapDashboard {
         localStorage.setItem('theme', newTheme);
         
         const themeIcon = document.querySelector('.theme-icon');
-        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        const themeLabel = document.getElementById('theme-label');
+        
+        themeIcon.textContent = '🌍';
+        themeLabel.textContent = newTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     }
     
     showLoading() {
@@ -908,7 +914,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', savedTheme);
     
     const themeIcon = document.querySelector('.theme-icon');
-    themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    const themeLabel = document.getElementById('theme-label');
+    
+    themeIcon.textContent = '🌍';
+    themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     
     // Initialize dashboard
     new MaptapDashboard();
