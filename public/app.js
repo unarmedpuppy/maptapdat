@@ -223,56 +223,65 @@ class MaptapDashboard {
             this.charts.overview.destroy();
         }
         
-        // Get daily average scores across all players
-        const dailyStats = {};
+        // Get daily player totals and calculate rankings
+        const dailyPlayerTotals = {};
         this.data.games.forEach(game => {
-            if (!dailyStats[game.date]) {
-                dailyStats[game.date] = {
-                    totalScore: 0,
-                    gameCount: 0,
-                    players: new Set()
-                };
+            if (!dailyPlayerTotals[game.date]) {
+                dailyPlayerTotals[game.date] = {};
             }
-            dailyStats[game.date].totalScore += game.total_score;
-            dailyStats[game.date].gameCount++;
-            dailyStats[game.date].players.add(game.user);
+            if (!dailyPlayerTotals[game.date][game.user]) {
+                dailyPlayerTotals[game.date][game.user] = 0;
+            }
+            dailyPlayerTotals[game.date][game.user] += game.total_score;
         });
         
         // Get last 10 days
         const sortedDates = this.data.dates.sort().slice(-10);
         const labels = sortedDates.map(date => new Date(date).toLocaleDateString());
         
-        // Calculate daily averages
-        const avgScores = sortedDates.map(date => {
-            const stats = dailyStats[date];
-            return stats ? Math.round(stats.totalScore / stats.gameCount) : 0;
+        // Calculate average daily rankings
+        const avgRankings = sortedDates.map(date => {
+            const dayTotals = dailyPlayerTotals[date];
+            if (!dayTotals) return 0;
+            
+            // Sort players by total score for that day (descending)
+            const sortedPlayers = Object.entries(dayTotals)
+                .sort(([,a], [,b]) => b - a)
+                .map(([player, score]) => ({ player, score }));
+            
+            // Calculate average ranking (1st place = 1, 2nd place = 2, etc.)
+            const totalRanking = sortedPlayers.reduce((sum, player, index) => {
+                return sum + (index + 1);
+            }, 0);
+            
+            return sortedPlayers.length > 0 ? (totalRanking / sortedPlayers.length).toFixed(1) : 0;
         });
         
         const playerCounts = sortedDates.map(date => {
-            const stats = dailyStats[date];
-            return stats ? stats.players.size : 0;
+            const dayTotals = dailyPlayerTotals[date];
+            return dayTotals ? Object.keys(dayTotals).length : 0;
         });
         
         this.charts.overview = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Daily Average Score',
-                    data: avgScores,
-                    backgroundColor: '#8b5cf6',
-                    borderColor: '#7c3aed',
-                    borderWidth: 1,
-                    borderRadius: 4,
+                    label: 'Average Daily Ranking',
+                    data: avgRankings,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: '#8b5cf620',
+                    tension: 0.4,
+                    fill: false,
                     yAxisID: 'y'
                 }, {
                     label: 'Players Participating',
                     data: playerCounts,
-                    type: 'line',
-                    borderColor: '#f59e0b',
-                    backgroundColor: '#f59e0b20',
-                    tension: 0.4,
-                    fill: false,
+                    type: 'bar',
+                    backgroundColor: '#f59e0b',
+                    borderColor: '#d97706',
+                    borderWidth: 1,
+                    borderRadius: 4,
                     yAxisID: 'y1'
                 }]
             },
@@ -293,11 +302,11 @@ class MaptapDashboard {
                         type: 'linear',
                         display: true,
                         position: 'left',
+                        reverse: true, // Lower ranking number = better (1st place is better than 2nd)
                         beginAtZero: true,
-                        max: 100,
                         title: {
                             display: true,
-                            text: 'Average Score'
+                            text: 'Average Ranking'
                         },
                         grid: {
                             color: 'rgba(0,0,0,0.1)'
