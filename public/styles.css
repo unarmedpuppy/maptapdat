@@ -308,6 +308,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
+    padding-bottom: 200px; /* Extra scrolling distance */
     width: 100%;
 }
 
@@ -875,6 +876,25 @@ select:focus {
     100% { transform: scale(1.1); }
 }
 
+.widget-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.maptap-widget:hover .widget-overlay {
+    opacity: 1;
+}
+
 /* Mobile responsive widget */
 @media (max-width: 768px) {
     .maptap-widget {
@@ -899,5 +919,10 @@ select:focus {
     .play-button {
         font-size: 0.7rem;
         padding: 6px 12px;
+    }
+    
+    /* Always show overlay on mobile */
+    .widget-overlay {
+        opacity: 1;
     }
 }
