@@ -47,17 +47,17 @@ class MaptapDashboard {
         // Filters
         document.getElementById('player-filter').addEventListener('change', (e) => {
             this.currentFilters.player = e.target.value;
-            this.updateCurrentSection();
+            this.applyFilters();
         });
         
         document.getElementById('date-filter').addEventListener('change', (e) => {
             this.currentFilters.date = e.target.value;
-            this.updateCurrentSection();
+            this.applyFilters();
         });
         
         document.getElementById('sort-filter').addEventListener('change', (e) => {
             this.currentFilters.sort = e.target.value;
-            this.updateCurrentSection();
+            this.applyFilters();
         });
         
         // Raw data controls
@@ -95,6 +95,10 @@ class MaptapDashboard {
             this.data.dates = dates;
             this.data.analytics = analytics;
             
+            this.populateFilters();
+            this.applyFilters();
+            this.hideLoading();
+            
         } catch (error) {
             console.error('Error loading data:', error);
             this.showError('Failed to load data. Please refresh the page.');
@@ -120,6 +124,32 @@ class MaptapDashboard {
             option.textContent = new Date(date).toLocaleDateString();
             dateFilter.appendChild(option);
         });
+    }
+    
+    applyFilters() {
+        // Filter the data based on current filters
+        let filteredGames = [...this.data.games];
+        
+        // Apply player filter
+        if (this.currentFilters.player) {
+            filteredGames = filteredGames.filter(game => game.user === this.currentFilters.player);
+        }
+        
+        // Apply date filter
+        if (this.currentFilters.date) {
+            filteredGames = filteredGames.filter(game => game.date === this.currentFilters.date);
+        }
+        
+        // Store filtered data
+        this.filteredData = {
+            games: filteredGames,
+            players: this.data.players,
+            dates: this.data.dates,
+            analytics: this.data.analytics
+        };
+        
+        // Update current section with filtered data
+        this.updateCurrentSection();
     }
     
     showSection(sectionName) {
@@ -160,13 +190,16 @@ class MaptapDashboard {
     }
     
     async updateOverview() {
-        // Update stats
-        document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
-        document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
-        document.getElementById('perfect-scores').textContent = 
-            this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
+        // Use filtered data if available, otherwise use all data
+        const dataToUse = this.filteredData || this.data;
         
-        const dateRange = this.data.analytics.dateRange;
+        // Update stats
+        document.getElementById('total-games').textContent = dataToUse.analytics.totalGames || 0;
+        document.getElementById('total-players').textContent = dataToUse.analytics.uniquePlayers || 0;
+        document.getElementById('perfect-scores').textContent = 
+            dataToUse.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
+        
+        const dateRange = dataToUse.analytics.dateRange;
         if (dateRange) {
             const start = new Date(dateRange.start).toLocaleDateString();
             const end = new Date(dateRange.end).toLocaleDateString();
@@ -176,53 +209,134 @@ class MaptapDashboard {
     }
     
     async updateLeaderboard() {
-        const params = new URLSearchParams();
-        if (this.currentFilters.date) params.append('date', this.currentFilters.date);
+        // Use filtered data if available, otherwise use all data
+        const dataToUse = this.filteredData || this.data;
         
-        try {
-            const leaderboard = await fetch(`/api/leaderboard?${params}`).then(r => r.json());
-            this.data.leaderboard = leaderboard;
+        // Calculate leaderboard from filtered data
+        const leaderboard = this.calculateLeaderboard(dataToUse.games);
+        
+        // Sort by current sort option
+        leaderboard.sort((a, b) => {
+            switch (this.currentFilters.sort) {
+                case 'avgScore':
+                    return b.avgScore - a.avgScore;
+                case 'perfectScores':
+                    return b.perfectScores - a.perfectScores;
+                case 'gamesPlayed':
+                    return b.gamesPlayed - a.gamesPlayed;
+                default:
+                    return b.totalScore - a.totalScore;
+            }
+        });
+        
+        this.data.leaderboard = leaderboard;
+        this.createLeaderboardChart();
+        this.updateLeaderboardTable();
+    }
+    
+    calculateLeaderboard(games) {
+        // Group games by user-date to get unique games per user
+        const userGames = {};
+        
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!userGames[key]) {
+                userGames[key] = {
+                    user: game.user,
+                    date: game.date,
+                    totalScore: game.total_score,
+                    locationScores: []
+                };
+            }
+            userGames[key].locationScores.push(game.location_score);
+        });
+        
+        // Calculate stats for each user
+        const userStats = {};
+        
+        Object.values(userGames).forEach(game => {
+            const user = game.user;
+            if (!userStats[user]) {
+                userStats[user] = {
+                    user: user,
+                    totalScore: 0,
+                    gamesPlayed: 0,
+                    perfectScores: 0,
+                    lowestScore: Infinity,
+                    highestScore: 0,
+                    locationScores: []
+                };
+            }
             
-            // Sort by current sort option
-            this.data.leaderboard.sort((a, b) => {
-                switch (this.currentFilters.sort) {
-                    case 'avgScore':
-                        return b.avgScore - a.avgScore;
-                    case 'perfectScores':
-                        return b.perfectScores - a.perfectScores;
-                    case 'gamesPlayed':
-                        return b.gamesPlayed - a.gamesPlayed;
-                    default:
-                        return b.totalScore - a.totalScore;
-                }
+            userStats[user].totalScore += game.totalScore;
+            userStats[user].gamesPlayed += 1;
+            userStats[user].locationScores.push(...game.locationScores);
+            
+            // Count perfect scores
+            game.locationScores.forEach(score => {
+                if (score === 100) userStats[user].perfectScores += 1;
+                if (score < userStats[user].lowestScore) userStats[user].lowestScore = score;
+                if (score > userStats[user].highestScore) userStats[user].highestScore = score;
             });
-            
-            this.createLeaderboardChart();
-            this.updateLeaderboardTable();
-            
-        } catch (error) {
-            console.error('Error loading leaderboard:', error);
-        }
+        });
+        
+        // Convert to array and calculate averages
+        return Object.values(userStats).map(user => ({
+            user: user.user,
+            totalScore: user.totalScore,
+            avgScore: Math.round(user.totalScore / user.gamesPlayed),
+            gamesPlayed: user.gamesPlayed,
+            perfectScores: user.perfectScores,
+            lowestScore: user.lowestScore === Infinity ? 0 : user.lowestScore,
+            highestScore: user.highestScore
+        }));
     }
     
     async updateTrends() {
-        const params = new URLSearchParams();
-        if (this.currentFilters.player) params.append('player', this.currentFilters.player);
+        // Use filtered data if available, otherwise use all data
+        const dataToUse = this.filteredData || this.data;
         
-        try {
-            const trends = await fetch(`/api/trends?${params}`).then(r => r.json());
-            this.data.trends = trends;
-            this.createTrendsChart();
-            
-        } catch (error) {
-            console.error('Error loading trends:', error);
-        }
+        // Calculate trends from filtered data
+        const trends = this.calculateTrends(dataToUse.games);
+        this.data.trends = trends;
+        this.createTrendsChart();
+    }
+    
+    calculateTrends(games) {
+        // Group by date and calculate daily averages
+        const dailyStats = {};
+        
+        games.forEach(game => {
+            if (!dailyStats[game.date]) {
+                dailyStats[game.date] = {
+                    date: game.date,
+                    totalScore: 0,
+                    count: 0,
+                    players: new Set()
+                };
+            }
+            dailyStats[game.date].totalScore += game.total_score;
+            dailyStats[game.date].count += 1;
+            dailyStats[game.date].players.add(game.user);
+        });
+        
+        // Convert to array and calculate averages
+        return Object.values(dailyStats)
+            .map(day => ({
+                date: day.date,
+                avgScore: Math.round(day.totalScore / day.count),
+                players: day.players.size
+            }))
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
     }
     
     updateAnalytics() {
-        this.createEmojiChart();
-        this.createDifficultyChart();
-        this.createPerfectLeadersChart();
+        // Use filtered data if available, otherwise use all data
+        const dataToUse = this.filteredData || this.data;
+        
+        this.createEmojiChart(dataToUse.games);
+        this.createDifficultyChart(dataToUse.games);
+        this.createPerfectLeadersChart(dataToUse.games);
     }
     
     
@@ -235,14 +349,33 @@ class MaptapDashboard {
         
         const topPlayers = this.data.leaderboard.slice(0, 10);
         const labels = topPlayers.map(player => player.user);
-        const data = topPlayers.map(player => player.totalScore);
+        
+        // Determine what data to show based on sort filter
+        let data, label;
+        switch (this.currentFilters.sort) {
+            case 'avgScore':
+                data = topPlayers.map(player => player.avgScore);
+                label = 'Average Score';
+                break;
+            case 'perfectScores':
+                data = topPlayers.map(player => player.perfectScores);
+                label = 'Perfect Scores';
+                break;
+            case 'gamesPlayed':
+                data = topPlayers.map(player => player.gamesPlayed);
+                label = 'Games Played';
+                break;
+            default:
+                data = topPlayers.map(player => player.totalScore);
+                label = 'Total Score';
+        }
         
         this.charts.leaderboard = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Total Score',
+                    label: label,
                     data: data,
                     backgroundColor: '#ff00c1',
                     borderColor: '#9600ff',
@@ -371,14 +504,25 @@ class MaptapDashboard {
         });
     }
     
-    createEmojiChart() {
+    createEmojiChart(games = this.data.games) {
         const ctx = document.getElementById('emoji-chart').getContext('2d');
         
         if (this.charts.emoji) {
             this.charts.emoji.destroy();
         }
         
-        const emojiData = this.data.analytics.emojiFrequency?.slice(0, 10) || [];
+        // Calculate emoji frequency from games data
+        const emojiCounts = {};
+        games.forEach(game => {
+            const emoji = game.emoji || '🎯';
+            emojiCounts[emoji] = (emojiCounts[emoji] || 0) + 1;
+        });
+        
+        const emojiData = Object.entries(emojiCounts)
+            .map(([emoji, count]) => ({ emoji, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+            
         const labels = emojiData.map(item => item.emoji);
         const data = emojiData.map(item => item.count);
         
@@ -414,15 +558,36 @@ class MaptapDashboard {
         });
     }
     
-    createDifficultyChart() {
+    createDifficultyChart(games = this.data.games) {
         const ctx = document.getElementById('difficulty-chart').getContext('2d');
         
         if (this.charts.difficulty) {
             this.charts.difficulty.destroy();
         }
         
-        const difficultyData = this.data.analytics.locationDifficulty || [];
-        const labels = difficultyData.map(item => `Location ${item.location}`);
+        // Calculate location difficulty from games data
+        const locationStats = {};
+        games.forEach(game => {
+            const location = `Location ${game.location_number}`;
+            if (!locationStats[location]) {
+                locationStats[location] = {
+                    location: location,
+                    totalScore: 0,
+                    count: 0
+                };
+            }
+            locationStats[location].totalScore += game.location_score;
+            locationStats[location].count += 1;
+        });
+        
+        const difficultyData = Object.values(locationStats)
+            .map(stat => ({
+                location: stat.location,
+                avgScore: Math.round(stat.totalScore / stat.count)
+            }))
+            .sort((a, b) => a.avgScore - b.avgScore);
+            
+        const labels = difficultyData.map(item => item.location);
         const data = difficultyData.map(item => item.avgScore);
         
         this.charts.difficulty = new Chart(ctx, {
@@ -465,14 +630,26 @@ class MaptapDashboard {
         });
     }
     
-    createPerfectLeadersChart() {
+    createPerfectLeadersChart(games = this.data.games) {
         const ctx = document.getElementById('perfect-leaders-chart').getContext('2d');
         
         if (this.charts.perfectLeaders) {
             this.charts.perfectLeaders.destroy();
         }
         
-        const leadersData = this.data.analytics.perfectScoreLeaders?.slice(0, 8) || [];
+        // Calculate perfect score leaders from games data
+        const userPerfectScores = {};
+        games.forEach(game => {
+            if (game.location_score === 100) {
+                userPerfectScores[game.user] = (userPerfectScores[game.user] || 0) + 1;
+            }
+        });
+        
+        const leadersData = Object.entries(userPerfectScores)
+            .map(([user, count]) => ({ user, perfectScores: count }))
+            .sort((a, b) => b.perfectScores - a.perfectScores)
+            .slice(0, 8);
+            
         const labels = leadersData.map(item => item.user);
         const data = leadersData.map(item => item.perfectScores);
         
@@ -540,25 +717,28 @@ class MaptapDashboard {
     }
     
     async updateRawData() {
+        // Use filtered data if available, otherwise use all data
+        const dataToUse = this.filteredData || this.data;
+        
         // Update info
-        document.getElementById('total-records').textContent = this.data.games.length;
+        document.getElementById('total-records').textContent = dataToUse.games.length;
         
         // Find the most recent date from the CSV data
-        const mostRecentDate = this.getMostRecentDate();
+        const mostRecentDate = this.getMostRecentDate(dataToUse.games);
         document.getElementById('last-updated').textContent = mostRecentDate;
         
         // Update table
-        this.updateRawDataTable();
+        this.updateRawDataTable(dataToUse.games);
     }
     
-    getMostRecentDate() {
-        if (!this.data.games || this.data.games.length === 0) {
+    getMostRecentDate(games = this.data.games) {
+        if (!games || games.length === 0) {
             return 'No data available';
         }
         
         // Find the most recent date by comparing date strings directly
         // This avoids potential timezone issues with Date parsing
-        const dateStrings = this.data.games.map(game => game.date);
+        const dateStrings = games.map(game => game.date);
         const uniqueDates = [...new Set(dateStrings)]; // Remove duplicates
         const sortedDates = uniqueDates.sort().reverse(); // Sort descending (newest first)
         
@@ -569,12 +749,12 @@ class MaptapDashboard {
         return date.toLocaleDateString();
     }
     
-    updateRawDataTable() {
+    updateRawDataTable(games = this.data.games) {
         const tbody = document.querySelector('#raw-data-table tbody');
         tbody.innerHTML = '';
         
         // Sort by date (newest first), then by user
-        const sortedGames = [...this.data.games].sort((a, b) => {
+        const sortedGames = [...games].sort((a, b) => {
             const dateCompare = new Date(b.date) - new Date(a.date);
             if (dateCompare !== 0) return dateCompare;
             return a.user.localeCompare(b.user);

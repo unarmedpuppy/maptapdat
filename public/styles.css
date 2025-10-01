@@ -458,6 +458,15 @@ body {
     height: 350px !important;
 }
 
+/* Leaderboard specific spacing */
+#leaderboard .chart-container {
+    margin-bottom: 2rem;
+}
+
+#leaderboard .leaderboard-table {
+    margin-bottom: 2rem;
+}
+
 /* Leaderboard table */
 .leaderboard-table {
     background: var(--bg-secondary);
