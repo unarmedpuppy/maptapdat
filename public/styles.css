@@ -3,18 +3,18 @@
     --bg-primary: #000000;
     --bg-secondary: #001122;
     --bg-tertiary: #002244;
-    --text-primary: #00cc00;
-    --text-secondary: #00cccc;
-    --text-muted: #cc00cc;
-    --border-color: #00cc00;
-    --accent-primary: #cc00cc;
-    --accent-secondary: #cccc00;
-    --success: #00cc00;
-    --warning: #cccc00;
-    --error: #cc0000;
-    --shadow-sm: 0 0 5px #00cc00;
-    --shadow-md: 0 0 10px #cc00cc, 0 0 20px #00cccc;
-    --shadow-lg: 0 0 15px #cccc00, 0 0 30px #cc00cc;
+    --text-primary: #00fff9;
+    --text-secondary: #00b8ff;
+    --text-muted: #ff00c1;
+    --border-color: #00fff9;
+    --accent-primary: #ff00c1;
+    --accent-secondary: #9600ff;
+    --success: #00fff9;
+    --warning: #4900ff;
+    --error: #ff00c1;
+    --shadow-sm: 0 0 5px #00fff9;
+    --shadow-md: 0 0 10px #ff00c1, 0 0 20px #00b8ff;
+    --shadow-lg: 0 0 15px #9600ff, 0 0 30px #ff00c1;
     --radius-sm: 0px;
     --radius-md: 0px;
     --radius-lg: 0px;
@@ -22,20 +22,20 @@
 
 [data-theme="light"] {
     --bg-primary: #ffffff;
-    --bg-secondary: #ffeecc;
-    --bg-tertiary: #ffccff;
-    --text-primary: #0000cc;
-    --text-secondary: #cc0000;
-    --text-muted: #800080;
-    --border-color: #0000cc;
-    --accent-primary: #cc0000;
-    --accent-secondary: #cc8000;
-    --success: #008000;
-    --warning: #cc8000;
-    --error: #cc0000;
-    --shadow-sm: 0 0 5px #0000cc;
-    --shadow-md: 0 0 10px #cc0000, 0 0 20px #800080;
-    --shadow-lg: 0 0 15px #cc8000, 0 0 30px #cc0000;
+    --bg-secondary: #f0f8ff;
+    --bg-tertiary: #e6f3ff;
+    --text-primary: #4900ff;
+    --text-secondary: #9600ff;
+    --text-muted: #ff00c1;
+    --border-color: #4900ff;
+    --accent-primary: #ff00c1;
+    --accent-secondary: #00b8ff;
+    --success: #00fff9;
+    --warning: #9600ff;
+    --error: #ff00c1;
+    --shadow-sm: 0 0 5px #4900ff;
+    --shadow-md: 0 0 10px #ff00c1, 0 0 20px #9600ff;
+    --shadow-lg: 0 0 15px #00b8ff, 0 0 30px #ff00c1;
 }
 
 /* Reset and base styles */
@@ -118,6 +118,12 @@ body {
     align-items: center;
 }
 
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .title {
     font-size: 1.8rem;
     font-weight: bold;
@@ -125,6 +131,22 @@ body {
     text-shadow: 0 0 10px currentColor;
     animation: titleBlink 1.5s linear infinite;
     font-family: 'Courier New', monospace;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-shadow: 0 0 5px currentColor;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    font-style: italic;
+    animation: subtitleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes subtitleGlow {
+    0% { text-shadow: 0 0 5px currentColor; }
+    100% { text-shadow: 0 0 10px currentColor, 0 0 15px var(--accent-primary); }
 }
 
 @keyframes titleBlink {
@@ -745,11 +767,11 @@ select:focus {
     width: 280px;
     height: 200px;
     background: var(--bg-secondary);
-    border: 3px solid #00cccc;
+    border: 3px solid #00fff9;
     border-style: double;
     box-shadow: 
-        0 0 15px #00cccc,
-        0 0 30px #cc00cc,
+        0 0 15px #00fff9,
+        0 0 30px #ff00c1,
         0 10px 20px rgba(0, 0, 0, 0.5);
     cursor: pointer;
     z-index: 1000;
@@ -761,21 +783,21 @@ select:focus {
 @keyframes widgetPulse {
     0% { 
         box-shadow: 
-            0 0 15px #00cccc,
-            0 0 30px #cc00cc,
+            0 0 15px #00fff9,
+            0 0 30px #ff00c1,
             0 10px 20px rgba(0, 0, 0, 0.5);
     }
     100% { 
         box-shadow: 
-            0 0 25px #00cccc,
-            0 0 50px #cc00cc,
+            0 0 25px #00fff9,
+            0 0 50px #ff00c1,
             0 15px 30px rgba(0, 0, 0, 0.7);
     }
 }
 
 .maptap-widget:hover {
     transform: scale(1.05);
-    border-color: #cc00cc;
+    border-color: #ff00c1;
     animation: widgetHover 0.5s ease-in-out infinite alternate;
 }
 
@@ -785,10 +807,10 @@ select:focus {
 }
 
 .widget-header {
-    background: linear-gradient(45deg, #00cccc, #cc00cc);
+    background: linear-gradient(45deg, #00fff9, #ff00c1);
     padding: 8px;
     text-align: center;
-    border-bottom: 2px solid #00cccc;
+    border-bottom: 2px solid #00fff9;
 }
 
 .widget-title {
@@ -836,7 +858,7 @@ select:focus {
 }
 
 .play-button {
-    background: linear-gradient(45deg, #cc00cc, #00cccc);
+    background: linear-gradient(45deg, #ff00c1, #00fff9);
     color: #000000;
     padding: 8px 16px;
     border: 2px solid #ffffff;

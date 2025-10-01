@@ -232,8 +232,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Total Score',
                     data: data,
-                    backgroundColor: '#ff00ff',
-                    borderColor: '#ff0080',
+                    backgroundColor: '#ff00c1',
+                    borderColor: '#9600ff',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -301,7 +301,7 @@ class MaptapDashboard {
         
         const labels = [...new Set(this.data.trends.map(t => t.date))].sort();
         const datasets = [];
-        const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff8000', '#ff0000', '#00ff00', '#8000ff'];
+        const colors = ['#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9', '#ff00c1', '#9600ff'];
         
         Object.entries(playerTrends).forEach(([player, trends], index) => {
             const data = labels.map(date => {
@@ -377,8 +377,8 @@ class MaptapDashboard {
                 datasets: [{
                     data: data,
                     backgroundColor: [
-                        '#ff00ff', '#00ffff', '#ffff00', '#ff8000', '#ff0000',
-                        '#00ff00', '#8000ff', '#ff0080', '#00ff80', '#8080ff'
+                        '#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9',
+                        '#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9'
                     ]
                 }]
             },
@@ -420,8 +420,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Average Score',
                     data: data,
-                    backgroundColor: '#00ff00',
-                    borderColor: '#008000',
+                    backgroundColor: '#00fff9',
+                    borderColor: '#00b8ff',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -471,8 +471,8 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Perfect Scores',
                     data: data,
-                    backgroundColor: '#ffff00',
-                    borderColor: '#ff8000',
+                    backgroundColor: '#9600ff',
+                    borderColor: '#4900ff',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
