@@ -45,7 +45,12 @@ class MaptapDashboard {
         
         // Filters toggle
         document.getElementById('filters-toggle').addEventListener('click', () => {
-            this.toggleFilters();
+            this.openFilters();
+        });
+        
+        // Filters close
+        document.getElementById('filters-close').addEventListener('click', () => {
+            this.closeFilters();
         });
         
         // Filters
@@ -811,17 +816,20 @@ class MaptapDashboard {
         });
     }
     
-    toggleFilters() {
+    openFilters() {
         const filtersContent = document.getElementById('filters-content');
         const filtersToggle = document.getElementById('filters-toggle');
         
-        if (filtersContent.classList.contains('hidden')) {
-            filtersContent.classList.remove('hidden');
-            filtersToggle.setAttribute('aria-expanded', 'true');
-        } else {
-            filtersContent.classList.add('hidden');
-            filtersToggle.setAttribute('aria-expanded', 'false');
-        }
+        filtersContent.classList.remove('hidden');
+        filtersToggle.classList.add('hidden');
+    }
+    
+    closeFilters() {
+        const filtersContent = document.getElementById('filters-content');
+        const filtersToggle = document.getElementById('filters-toggle');
+        
+        filtersContent.classList.add('hidden');
+        filtersToggle.classList.remove('hidden');
     }
     
     toggleTheme() {

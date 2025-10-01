@@ -203,7 +203,6 @@ body {
 /* Spinning Globe */
 .spinning-globe {
     font-size: 2.5rem;
-    animation: globeSpin 3s linear infinite;
     text-shadow: 0 0 20px var(--accent-primary);
     margin-bottom: 0.5rem;
     display: block;
@@ -323,46 +322,50 @@ body {
 
 /* Filters Section */
 .filters-section {
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-style: double;
+    position: relative;
     margin: 1rem 0;
-    box-shadow: var(--shadow-sm);
 }
 
 .filters-toggle {
-    width: 100%;
+    position: absolute;
+    top: -0.5rem;
+    right: 1rem;
     background: var(--bg-tertiary);
-    border: none;
-    padding: 0.75rem 1rem;
-    color: var(--text-primary);
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    font-weight: bold;
-    cursor: pointer;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    cursor: pointer;
     transition: all 0.3s ease;
-    text-shadow: 0 0 5px currentColor;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
 }
 
 .filters-toggle:hover {
     background: var(--accent-primary);
-    color: var(--bg-primary);
-    text-shadow: none;
+    border-color: var(--accent-primary);
     box-shadow: 0 0 10px var(--accent-primary);
+    transform: scale(1.1);
+}
+
+.filters-toggle.hidden {
+    display: none;
 }
 
 .filters-icon {
-    font-size: 1.1rem;
+    font-size: 1rem;
     animation: iconBounce 2s ease-in-out infinite;
 }
 
 .filters-content {
-    padding: 1rem;
-    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-style: double;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
 }
 
@@ -372,6 +375,45 @@ body {
 
 .filters-content:not(.hidden) {
     display: block;
+}
+
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.filters-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.filters-close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.filters-close:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    transform: scale(1.1);
 }
 
 /* Filters */

@@ -56,11 +56,16 @@
 
         <!-- Filters -->
         <div class="filters-section">
-            <button id="filters-toggle" class="filters-toggle" aria-label="Toggle filters">
+            <button id="filters-toggle" class="filters-toggle" aria-label="Open filters">
                 <span class="filters-icon">🔍</span>
-                <span class="filters-text">Filters</span>
             </button>
             <div id="filters-content" class="filters-content hidden">
+                <div class="filters-header">
+                    <h3>Filters</h3>
+                    <button id="filters-close" class="filters-close" aria-label="Close filters">
+                        <span>✕</span>
+                    </button>
+                </div>
                 <div class="filters">
                     <div class="filter-group">
                         <label for="player-filter">Player:</label>
