@@ -20,11 +20,20 @@ services:
       - "traefik.http.routers.maptapdat.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
       - "traefik.http.routers.maptapdat.entrypoints=web"
       - "traefik.http.services.maptapdat.loadbalancer.server.port=3000"
+      # HTTPS configuration
+      - "traefik.http.routers.maptapdat-secure.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.maptapdat-secure.entrypoints=websecure"
+      - "traefik.http.routers.maptapdat-secure.tls=true"
+      - "traefik.http.routers.maptapdat-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.maptapdat-secure.service=maptapdat"
+      # HTTPS redirect
+      - "traefik.http.middlewares.maptapdat-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.maptapdat.middlewares=maptapdat-redirect"
       # Homepage integration
       - "homepage.group=Apps"
       - "homepage.name=Maptap Data"
       - "homepage.icon=🗺️"
-      - "homepage.href=http://maptapdat.server.unarmedpuppy.com"
+      - "homepage.href=https://maptapdat.server.unarmedpuppy.com"
       - "homepage.description=Maptap.gg score visualization dashboard"
 
 networks:
