@@ -124,6 +124,13 @@ body {
     gap: 0.25rem;
 }
 
+.header-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .title {
     font-size: 1.8rem;
     font-weight: bold;
@@ -195,10 +202,16 @@ body {
 
 /* Spinning Globe */
 .spinning-globe {
-    font-size: 3rem;
-    animation: iconSpin 4s linear infinite;
-    margin-right: 1rem;
+    font-size: 2.5rem;
+    animation: globeSpin 3s linear infinite;
     text-shadow: 0 0 20px var(--accent-primary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+@keyframes globeSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Theme Controls */
@@ -306,6 +319,59 @@ body {
 @keyframes activeNavPulse {
     0% { box-shadow: var(--shadow-lg); }
     100% { box-shadow: 0 0 20px var(--accent-primary), 0 0 40px var(--accent-secondary); }
+}
+
+/* Filters Section */
+.filters-section {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-style: double;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.filters-toggle {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px currentColor;
+}
+
+.filters-toggle:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    text-shadow: none;
+    box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.filters-icon {
+    font-size: 1.1rem;
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+.filters-content {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.filters-content.hidden {
+    display: none;
+}
+
+.filters-content:not(.hidden) {
+    display: block;
 }
 
 /* Filters */

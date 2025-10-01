@@ -55,27 +55,35 @@
         </nav>
 
         <!-- Filters -->
-        <div class="filters">
-            <div class="filter-group">
-                <label for="player-filter">Player:</label>
-                <select id="player-filter">
-                    <option value="">All Players</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="date-filter">Date:</label>
-                <select id="date-filter">
-                    <option value="">All Dates</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="sort-filter">Sort by:</label>
-                <select id="sort-filter">
-                    <option value="avgScore">Average Score</option>
-                    <option value="totalScore">Total Score</option>
-                    <option value="perfectScores">Perfect Scores</option>
-                    <option value="gamesPlayed">Games Played</option>
-                </select>
+        <div class="filters-section">
+            <button id="filters-toggle" class="filters-toggle" aria-label="Toggle filters">
+                <span class="filters-icon">🔍</span>
+                <span class="filters-text">Filters</span>
+            </button>
+            <div id="filters-content" class="filters-content hidden">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="player-filter">Player:</label>
+                        <select id="player-filter">
+                            <option value="">All Players</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-filter">Date:</label>
+                        <select id="date-filter">
+                            <option value="">All Dates</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sort-filter">Sort by:</label>
+                        <select id="sort-filter">
+                            <option value="avgScore">Average Score</option>
+                            <option value="totalScore">Total Score</option>
+                            <option value="perfectScores">Perfect Scores</option>
+                            <option value="gamesPlayed">Games Played</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 

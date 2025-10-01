@@ -43,6 +43,11 @@ class MaptapDashboard {
             this.toggleTheme();
         });
         
+        // Filters toggle
+        document.getElementById('filters-toggle').addEventListener('click', () => {
+            this.toggleFilters();
+        });
+        
         // Filters
         document.getElementById('player-filter').addEventListener('change', (e) => {
             this.currentFilters.player = e.target.value;
@@ -804,6 +809,19 @@ class MaptapDashboard {
                 }
             }
         });
+    }
+    
+    toggleFilters() {
+        const filtersContent = document.getElementById('filters-content');
+        const filtersToggle = document.getElementById('filters-toggle');
+        
+        if (filtersContent.classList.contains('hidden')) {
+            filtersContent.classList.remove('hidden');
+            filtersToggle.setAttribute('aria-expanded', 'true');
+        } else {
+            filtersContent.classList.add('hidden');
+            filtersToggle.setAttribute('aria-expanded', 'false');
+        }
     }
     
     toggleTheme() {
