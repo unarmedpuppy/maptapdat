@@ -26,7 +26,6 @@ class MaptapDashboard {
         await this.loadData();
         this.populateFilters();
         this.updateOverview();
-        this.showSection('overview');
         this.hideLoading();
     }
     
@@ -69,6 +68,11 @@ class MaptapDashboard {
             this.loadData();
         });
         
+        // Handle browser back/forward buttons
+        window.addEventListener('hashchange', () => {
+            this.handleHashChange();
+        });
+        
         // Leaderboard controls
         document.getElementById('overall-leaderboard').addEventListener('click', () => {
             this.currentFilters.date = '';
@@ -101,6 +105,9 @@ class MaptapDashboard {
             this.populateFilters();
             this.applyFilters();
             this.hideLoading();
+            
+            // Initialize routing - check URL hash first
+            this.handleHashChange();
             
         } catch (error) {
             console.error('Error loading data:', error);
@@ -156,6 +163,9 @@ class MaptapDashboard {
     }
     
     showSection(sectionName) {
+        // Update URL hash
+        window.location.hash = sectionName;
+        
         // Update navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -170,6 +180,18 @@ class MaptapDashboard {
         
         this.currentSection = sectionName;
         this.updateCurrentSection();
+    }
+    
+    handleHashChange() {
+        const hash = window.location.hash.substring(1); // Remove the #
+        const validSections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
+        
+        if (hash && validSections.includes(hash)) {
+            this.showSection(hash);
+        } else {
+            // Default to overview if no valid hash
+            this.showSection('overview');
+        }
     }
     
     updateCurrentSection() {
