@@ -268,6 +268,67 @@ class MaptapDashboard {
             document.getElementById('date-range').textContent = `${start} - ${end}`;
         }
         
+        // Update daily winner and loser
+        this.updateDailyWinnerLoser(dataToUse.games);
+        
+    }
+    
+    updateDailyWinnerLoser(games) {
+        // Get the most recent date
+        const mostRecentDate = this.getMostRecentDate(games);
+        
+        if (mostRecentDate === 'No data available') {
+            document.getElementById('daily-winner').textContent = 'No Data';
+            document.getElementById('daily-loser').textContent = 'No Data';
+            return;
+        }
+        
+        // Group games by user-date to get unique games per user for the most recent date
+        const userGames = {};
+        
+        games.forEach(game => {
+            if (game.date === mostRecentDate) {
+                const key = `${game.user}-${game.date}`;
+                if (!userGames[key]) {
+                    userGames[key] = {
+                        user: game.user,
+                        date: game.date,
+                        totalScore: game.total_score
+                    };
+                }
+            }
+        });
+        
+        // Convert to array and sort by total score
+        const dailyScores = Object.values(userGames).sort((a, b) => b.totalScore - a.totalScore);
+        
+        if (dailyScores.length === 0) {
+            document.getElementById('daily-winner').textContent = 'No Games';
+            document.getElementById('daily-loser').textContent = 'No Games';
+            return;
+        }
+        
+        // Get winner (highest score) and loser (lowest score)
+        const winner = dailyScores[0];
+        const loser = dailyScores[dailyScores.length - 1];
+        
+        // Format date for display
+        const [year, month, day] = mostRecentDate.split('-');
+        const displayDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+        
+        // Update winner widget
+        document.getElementById('daily-winner').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${winner.user}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${winner.totalScore} points</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${displayDate}</div>
+        `;
+        
+        // Update loser widget
+        document.getElementById('daily-loser').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${loser.user}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${loser.totalScore} points</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${displayDate}</div>
+        `;
     }
     
     async updateLeaderboard() {

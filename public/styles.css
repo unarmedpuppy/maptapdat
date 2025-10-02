@@ -536,6 +536,32 @@ body {
     border-style: inset;
 }
 
+/* Winner and Loser Card Styling */
+.winner-card {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-color: var(--accent-primary);
+    animation: winnerGlow 3s ease-in-out infinite;
+}
+
+.winner-card .stat-icon {
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+.loser-card {
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+    border-color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.loser-card .stat-icon {
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes winnerGlow {
+    0%, 100% { box-shadow: var(--shadow-sm); }
+    50% { box-shadow: 0 0 20px var(--accent-primary), var(--shadow-sm); }
+}
+
 .stat-icon {
     font-size: 2rem;
     width: 3rem;
