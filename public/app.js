@@ -61,6 +61,16 @@ class MaptapDashboard {
         
         document.getElementById('date-filter').addEventListener('change', (e) => {
             this.currentFilters.date = e.target.value;
+            
+            // Update URL hash if we're on leaderboard section
+            if (this.currentSection === 'leaderboard') {
+                if (e.target.value) {
+                    window.location.hash = `leaderboard?date=${e.target.value}`;
+                } else {
+                    window.location.hash = 'leaderboard';
+                }
+            }
+            
             this.updateLeaderboardSortIndicator();
             this.applyFilters();
         });
@@ -104,6 +114,10 @@ class MaptapDashboard {
             this.currentFilters.sort = 'totalScore';
             document.getElementById('date-filter').value = mostRecentDate;
             document.getElementById('sort-filter').value = 'totalScore';
+            
+            // Update URL hash with date parameter
+            window.location.hash = `leaderboard?date=${mostRecentDate}`;
+            
             this.updateLeaderboardSortIndicator();
             this.applyFilters();
             this.updateLeaderboard();
@@ -237,8 +251,25 @@ class MaptapDashboard {
         const hash = window.location.hash.substring(1); // Remove the #
         const validSections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
         
-        if (hash && validSections.includes(hash)) {
-            this.showSection(hash);
+        // Check if hash contains a date parameter for daily leaderboard
+        const hashParts = hash.split('?');
+        const section = hashParts[0];
+        const params = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
+        
+        if (hash && validSections.includes(section)) {
+            this.showSection(section);
+            
+            // Handle daily leaderboard with date parameter
+            if (section === 'leaderboard' && params && params.has('date')) {
+                const date = params.get('date');
+                this.currentFilters.date = date;
+                this.currentFilters.sort = 'totalScore';
+                document.getElementById('date-filter').value = date;
+                document.getElementById('sort-filter').value = 'totalScore';
+                this.updateLeaderboardSortIndicator();
+                this.applyFilters();
+                this.updateLeaderboard();
+            }
         } else {
             // Default to overview if no valid hash
             this.showSection('overview');
