@@ -153,6 +153,10 @@ class MaptapDashboard {
         const playerFilter = document.getElementById('player-filter');
         const dateFilter = document.getElementById('date-filter');
         
+        // Clear existing options first
+        playerFilter.innerHTML = '<option value="">All Players</option>';
+        dateFilter.innerHTML = '<option value="">All Dates</option>';
+        
         // Populate players
         this.data.players.forEach(player => {
             const option = document.createElement('option');
