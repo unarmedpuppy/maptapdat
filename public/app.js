@@ -365,14 +365,27 @@ class MaptapDashboard {
         const overallWinner = sortedByAvgScore[0];
         const overallLoser = sortedByAvgScore[sortedByAvgScore.length - 1];
         
-        // Sort by games played for most/least games
-        const sortedByGames = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed);
-        const mostGames = sortedByGames[0].gamesPlayed;
-        const leastGames = sortedByGames[sortedByGames.length - 1].gamesPlayed;
+        // Calculate games played correctly - count unique dates per user
+        const userGameCounts = {};
+        games.forEach(game => {
+            if (!userGameCounts[game.user]) {
+                userGameCounts[game.user] = new Set();
+            }
+            userGameCounts[game.user].add(game.date);
+        });
+        
+        // Convert to array with actual game counts
+        const gameCounts = Object.entries(userGameCounts).map(([user, dates]) => ({
+            user: user,
+            gamesPlayed: dates.size
+        })).sort((a, b) => b.gamesPlayed - a.gamesPlayed);
+        
+        const mostGames = gameCounts[0].gamesPlayed;
+        const leastGames = gameCounts[gameCounts.length - 1].gamesPlayed;
         
         // Find all players with most games (handle ties)
-        const mostGamesPlayers = sortedByGames.filter(player => player.gamesPlayed === mostGames);
-        const leastGamesPlayers = sortedByGames.filter(player => player.gamesPlayed === leastGames);
+        const mostGamesPlayers = gameCounts.filter(player => player.gamesPlayed === mostGames);
+        const leastGamesPlayers = gameCounts.filter(player => player.gamesPlayed === leastGames);
         
         // Update overall winner widget
         document.getElementById('overall-winner').innerHTML = `
