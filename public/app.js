@@ -137,6 +137,7 @@ class MaptapDashboard {
             
             this.populateFilters();
             this.applyFilters();
+            this.updateLeaderboardSortIndicator(); // Initialize sort indicator
             this.hideLoading();
             
             // Initialize routing - check URL hash first
