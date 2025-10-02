@@ -59,6 +59,8 @@ app.get('/api/players', (req, res) => {
 });
 
 app.get('/api/dates', (req, res) => {
+    console.log('Dates Set:', dates);
+    console.log('Dates Array:', Array.from(dates));
     res.json(Array.from(dates).sort());
 });
 

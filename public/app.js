@@ -162,7 +162,10 @@ class MaptapDashboard {
         });
         
         // Populate dates (remove duplicates and sort)
+        console.log('Raw dates from API:', this.data.dates);
         const uniqueDates = [...new Set(this.data.dates)].sort().reverse(); // Most recent first
+        console.log('Unique dates after deduplication:', uniqueDates);
+        
         uniqueDates.forEach(date => {
             const option = document.createElement('option');
             option.value = date;
