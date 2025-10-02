@@ -892,7 +892,9 @@ class MaptapDashboard {
     
     showLeaderboardDate(dateString) {
         const dateElement = document.getElementById('leaderboard-date');
-        const formattedDate = new Date(dateString).toLocaleDateString();
+        // Convert YYYY-MM-DD to MM/DD/YYYY format without using Date objects
+        const [year, month, day] = dateString.split('-');
+        const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
         dateElement.textContent = `Daily Leaderboard for ${formattedDate}`;
         dateElement.classList.remove('hidden');
     }
@@ -979,9 +981,9 @@ class MaptapDashboard {
             return rawDate;
         }
         
-        // Parse and format the date for display
-        const date = new Date(rawDate);
-        return date.toLocaleDateString();
+        // Convert YYYY-MM-DD to MM/DD/YYYY format without using Date objects
+        const [year, month, day] = rawDate.split('-');
+        return `${parseInt(month)}/${parseInt(day)}/${year}`;
     }
     
     updateRawDataTable(games = this.data.games) {
@@ -1000,13 +1002,12 @@ class MaptapDashboard {
         console.log('Stephen Alexander games in raw data:', sortedGames.filter(game => game.user.toLowerCase().includes('stephen')));
         
         sortedGames.forEach(game => {
-            // Debug: Check date conversion
-            const rawDate = game.date;
-            const convertedDate = new Date(rawDate);
-            const displayDate = convertedDate.toLocaleDateString();
+            // Convert YYYY-MM-DD to MM/DD/YYYY format without using Date objects
+            const [year, month, day] = game.date.split('-');
+            const displayDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
             
             if (game.user.toLowerCase().includes('stephen')) {
-                console.log(`Stephen Alexander - Raw: ${rawDate}, Converted: ${convertedDate}, Display: ${displayDate}`);
+                console.log(`Stephen Alexander - Raw: ${game.date}, Display: ${displayDate}`);
             }
             
             const row = document.createElement('tr');
