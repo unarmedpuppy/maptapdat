@@ -66,6 +66,7 @@ class MaptapDashboard {
         
         document.getElementById('sort-filter').addEventListener('change', (e) => {
             this.currentFilters.sort = e.target.value;
+            this.updateLeaderboardSortIndicator();
             this.applyFilters();
         });
         
@@ -90,6 +91,7 @@ class MaptapDashboard {
             document.getElementById('date-filter').value = '';
             document.getElementById('sort-filter').value = 'avgScore';
             this.hideLeaderboardDate();
+            this.showLeaderboardSort('avgScore');
             this.applyFilters();
             this.updateLeaderboard();
         });
@@ -102,6 +104,7 @@ class MaptapDashboard {
             document.getElementById('date-filter').value = mostRecentDate;
             document.getElementById('sort-filter').value = 'totalScore';
             this.showLeaderboardDate(mostRecentDate);
+            this.showLeaderboardSort('totalScore');
             this.applyFilters();
             this.updateLeaderboard();
         });
@@ -897,6 +900,35 @@ class MaptapDashboard {
         const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
         dateElement.textContent = `Daily Leaderboard for ${formattedDate}`;
         dateElement.classList.remove('hidden');
+    }
+    
+    updateLeaderboardSortIndicator() {
+        // Only show sort indicator for overall leaderboard (not daily)
+        if (this.currentFilters.date && this.currentFilters.date !== '') {
+            // Daily leaderboard - hide sort indicator
+            this.hideLeaderboardSort();
+        } else {
+            // Overall leaderboard - show sort indicator
+            this.showLeaderboardSort(this.currentFilters.sort);
+        }
+    }
+    
+    showLeaderboardSort(sortType) {
+        const sortElement = document.getElementById('leaderboard-sort');
+        const sortLabels = {
+            'avgScore': 'Ranked by Average Score',
+            'totalScore': 'Ranked by Total Score',
+            'gamesPlayed': 'Ranked by Games Played',
+            'perfectScores': 'Ranked by Perfect Scores'
+        };
+        
+        sortElement.textContent = sortLabels[sortType] || 'Ranked by Average Score';
+        sortElement.classList.remove('hidden');
+    }
+    
+    hideLeaderboardSort() {
+        const sortElement = document.getElementById('leaderboard-sort');
+        sortElement.classList.add('hidden');
     }
     
     hideLeaderboardDate() {

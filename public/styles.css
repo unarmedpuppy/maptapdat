@@ -639,6 +639,24 @@ body {
     display: none;
 }
 
+/* Leaderboard Sort Indicator */
+.leaderboard-sort {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: var(--text-primary);
+    text-shadow: 0 0 5px currentColor;
+}
+
+.leaderboard-sort.hidden {
+    display: none;
+}
+
 /* Leaderboard specific spacing */
 #leaderboard .chart-container {
     margin-bottom: 2rem;
