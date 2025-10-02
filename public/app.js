@@ -966,6 +966,10 @@ class MaptapDashboard {
         console.log('Available dates:', sortedDates);
         console.log('Most recent date:', sortedDates[0]);
         
+        // Debug: Check Stephen Alexander's data specifically
+        const stephenGames = games.filter(game => game.user.toLowerCase().includes('stephen'));
+        console.log('Stephen Alexander games:', stephenGames);
+        
         return sortedDates[0]; // Return raw date string (e.g., "2025-10-01")
     }
     
@@ -986,16 +990,29 @@ class MaptapDashboard {
         
         // Sort by date (newest first), then by user
         const sortedGames = [...games].sort((a, b) => {
-            const dateCompare = new Date(b.date) - new Date(a.date);
+            // Use string comparison to avoid timezone issues
+            const dateCompare = b.date.localeCompare(a.date);
             if (dateCompare !== 0) return dateCompare;
             return a.user.localeCompare(b.user);
         });
         
+        console.log('Raw data table - first 5 games:', sortedGames.slice(0, 5));
+        console.log('Stephen Alexander games in raw data:', sortedGames.filter(game => game.user.toLowerCase().includes('stephen')));
+        
         sortedGames.forEach(game => {
+            // Debug: Check date conversion
+            const rawDate = game.date;
+            const convertedDate = new Date(rawDate);
+            const displayDate = convertedDate.toLocaleDateString();
+            
+            if (game.user.toLowerCase().includes('stephen')) {
+                console.log(`Stephen Alexander - Raw: ${rawDate}, Converted: ${convertedDate}, Display: ${displayDate}`);
+            }
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${game.user}</td>
-                <td>${new Date(game.date).toLocaleDateString()}</td>
+                <td>${displayDate}</td>
                 <td>${game.location_number}</td>
                 <td>${game.location_score}</td>
                 <td>${game.total_score}</td>
