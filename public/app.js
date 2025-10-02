@@ -61,6 +61,7 @@ class MaptapDashboard {
         
         document.getElementById('date-filter').addEventListener('change', (e) => {
             this.currentFilters.date = e.target.value;
+            this.updateLeaderboardSortIndicator();
             this.applyFilters();
         });
         
@@ -103,8 +104,7 @@ class MaptapDashboard {
             this.currentFilters.sort = 'totalScore';
             document.getElementById('date-filter').value = mostRecentDate;
             document.getElementById('sort-filter').value = 'totalScore';
-            this.showLeaderboardDate(mostRecentDate);
-            this.showLeaderboardSort('totalScore');
+            this.updateLeaderboardSortIndicator();
             this.applyFilters();
             this.updateLeaderboard();
         });
@@ -161,13 +161,20 @@ class MaptapDashboard {
             playerFilter.appendChild(option);
         });
         
-        // Populate dates
-        this.data.dates.forEach(date => {
+        // Populate dates (remove duplicates and sort)
+        const uniqueDates = [...new Set(this.data.dates)].sort().reverse(); // Most recent first
+        uniqueDates.forEach(date => {
             const option = document.createElement('option');
             option.value = date;
-            option.textContent = new Date(date).toLocaleDateString();
+            // Convert YYYY-MM-DD to MM/DD/YYYY format without using Date objects
+            const [year, month, day] = date.split('-');
+            const displayDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+            option.textContent = displayDate;
             dateFilter.appendChild(option);
         });
+        
+        // Don't set default date - let overall leaderboard show all data by default
+        // The daily leaderboard button will set the most recent date when clicked
     }
     
     applyFilters() {
@@ -1029,12 +1036,14 @@ class MaptapDashboard {
     }
     
     updateLeaderboardSortIndicator() {
-        // Only show sort indicator for overall leaderboard (not daily)
+        // Check if a specific date is selected
         if (this.currentFilters.date && this.currentFilters.date !== '') {
-            // Daily leaderboard - hide sort indicator
+            // Daily leaderboard - show date banner, hide sort indicator
+            this.showLeaderboardDate(this.currentFilters.date);
             this.hideLeaderboardSort();
         } else {
-            // Overall leaderboard - show sort indicator
+            // Overall leaderboard - hide date banner, show sort indicator
+            this.hideLeaderboardDate();
             this.showLeaderboardSort(this.currentFilters.sort);
         }
     }
