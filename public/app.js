@@ -86,11 +86,23 @@ class MaptapDashboard {
         // Leaderboard controls
         document.getElementById('overall-leaderboard').addEventListener('click', () => {
             this.currentFilters.date = '';
+            this.currentFilters.sort = 'avgScore';
             document.getElementById('date-filter').value = '';
+            document.getElementById('sort-filter').value = 'avgScore';
+            this.hideLeaderboardDate();
+            this.applyFilters();
             this.updateLeaderboard();
         });
         
         document.getElementById('daily-leaderboard').addEventListener('click', () => {
+            // Set to most recent date
+            const mostRecentDate = this.getMostRecentDate();
+            this.currentFilters.date = mostRecentDate;
+            this.currentFilters.sort = 'totalScore';
+            document.getElementById('date-filter').value = mostRecentDate;
+            document.getElementById('sort-filter').value = 'totalScore';
+            this.showLeaderboardDate(mostRecentDate);
+            this.applyFilters();
             this.updateLeaderboard();
         });
     }
@@ -301,6 +313,12 @@ class MaptapDashboard {
         
         console.log('Grouped into', Object.keys(userGames).length, 'unique games');
         
+        // Check if this is a daily leaderboard (filtered by specific date)
+        const isDailyLeaderboard = this.currentFilters.date && this.currentFilters.date !== '';
+        if (isDailyLeaderboard) {
+            console.log('Daily leaderboard for date:', this.currentFilters.date);
+        }
+        
         // Calculate stats for each user
         const userStats = {};
         
@@ -318,16 +336,33 @@ class MaptapDashboard {
                 };
             }
             
-            userStats[user].totalScore += game.totalScore;
-            userStats[user].gamesPlayed += 1;
-            userStats[user].locationScores.push(...game.locationScores);
-            
-            // Count perfect scores
-            game.locationScores.forEach(score => {
-                if (score === 100) userStats[user].perfectScores += 1;
-                if (score < userStats[user].lowestScore) userStats[user].lowestScore = score;
-                if (score > userStats[user].highestScore) userStats[user].highestScore = score;
-            });
+            // For daily leaderboard, only count games from the selected date
+            if (isDailyLeaderboard) {
+                if (game.date === this.currentFilters.date) {
+                    userStats[user].totalScore = game.totalScore; // Single day score
+                    userStats[user].gamesPlayed = 1; // One game for the day
+                    userStats[user].locationScores = [...game.locationScores];
+                    
+                    // Count perfect scores for this day
+                    game.locationScores.forEach(score => {
+                        if (score === 100) userStats[user].perfectScores += 1;
+                        if (score < userStats[user].lowestScore) userStats[user].lowestScore = score;
+                        if (score > userStats[user].highestScore) userStats[user].highestScore = score;
+                    });
+                }
+            } else {
+                // Overall leaderboard - sum all games
+                userStats[user].totalScore += game.totalScore;
+                userStats[user].gamesPlayed += 1;
+                userStats[user].locationScores.push(...game.locationScores);
+                
+                // Count perfect scores
+                game.locationScores.forEach(score => {
+                    if (score === 100) userStats[user].perfectScores += 1;
+                    if (score < userStats[user].lowestScore) userStats[user].lowestScore = score;
+                    if (score > userStats[user].highestScore) userStats[user].highestScore = score;
+                });
+            }
         });
         
         // Convert to array and calculate averages
@@ -339,15 +374,20 @@ class MaptapDashboard {
             console.log(`Total Score: ${user.totalScore}`);
             console.log(`Games Played: ${user.gamesPlayed}`);
             console.log(`Average Score: ${avgScore}`);
-            console.log('Individual Games:');
             
-            // Show each game for this user
-            Object.values(userGames)
-                .filter(game => game.user === user.user)
-                .sort((a, b) => new Date(a.date) - new Date(b.date))
-                .forEach(game => {
-                    console.log(`  ${game.date}: ${game.totalScore} points`);
-                });
+            if (isDailyLeaderboard) {
+                console.log(`Daily Score for ${this.currentFilters.date}: ${user.totalScore} points`);
+            } else {
+                console.log('Individual Games:');
+                
+                // Show each game for this user
+                Object.values(userGames)
+                    .filter(game => game.user === user.user)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date))
+                    .forEach(game => {
+                        console.log(`  ${game.date}: ${game.totalScore} points`);
+                    });
+            }
             
             return {
                 user: user.user,
@@ -850,6 +890,18 @@ class MaptapDashboard {
         filtersToggle.classList.add('hidden');
     }
     
+    showLeaderboardDate(dateString) {
+        const dateElement = document.getElementById('leaderboard-date');
+        const formattedDate = new Date(dateString).toLocaleDateString();
+        dateElement.textContent = `Daily Leaderboard for ${formattedDate}`;
+        dateElement.classList.remove('hidden');
+    }
+    
+    hideLeaderboardDate() {
+        const dateElement = document.getElementById('leaderboard-date');
+        dateElement.classList.add('hidden');
+    }
+    
     closeFilters() {
         const filtersContent = document.getElementById('filters-content');
         const filtersToggle = document.getElementById('filters-toggle');
@@ -893,7 +945,7 @@ class MaptapDashboard {
         document.getElementById('total-records').textContent = dataToUse.games.length;
         
         // Find the most recent date from the CSV data
-        const mostRecentDate = this.getMostRecentDate(dataToUse.games);
+        const mostRecentDate = this.getMostRecentDateFormatted(dataToUse.games);
         document.getElementById('last-updated').textContent = mostRecentDate;
         
         // Update table
@@ -911,10 +963,20 @@ class MaptapDashboard {
         const uniqueDates = [...new Set(dateStrings)]; // Remove duplicates
         const sortedDates = uniqueDates.sort().reverse(); // Sort descending (newest first)
         
-        const mostRecentDateString = sortedDates[0];
+        console.log('Available dates:', sortedDates);
+        console.log('Most recent date:', sortedDates[0]);
         
-        // Parse and format the date
-        const date = new Date(mostRecentDateString);
+        return sortedDates[0]; // Return raw date string (e.g., "2025-10-01")
+    }
+    
+    getMostRecentDateFormatted(games = this.data.games) {
+        const rawDate = this.getMostRecentDate(games);
+        if (rawDate === 'No data available') {
+            return rawDate;
+        }
+        
+        // Parse and format the date for display
+        const date = new Date(rawDate);
         return date.toLocaleDateString();
     }
     
