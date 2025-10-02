@@ -271,6 +271,9 @@ class MaptapDashboard {
         // Update daily winner and loser
         this.updateDailyWinnerLoser(dataToUse.games);
         
+        // Update overall stats
+        this.updateOverallStats(dataToUse.games);
+        
     }
     
     updateDailyWinnerLoser(games) {
@@ -328,6 +331,67 @@ class MaptapDashboard {
             <div style="font-size: 1.2rem; font-weight: bold;">${loser.user}</div>
             <div style="font-size: 0.9rem; opacity: 0.8;">${loser.totalScore} points</div>
             <div style="font-size: 0.8rem; opacity: 0.6;">${displayDate}</div>
+        `;
+    }
+    
+    updateOverallStats(games) {
+        // Calculate overall leaderboard to get average scores
+        const leaderboard = this.calculateLeaderboard(games);
+        
+        if (leaderboard.length === 0) {
+            document.getElementById('overall-winner').textContent = 'No Data';
+            document.getElementById('overall-loser').textContent = 'No Data';
+            document.getElementById('most-games').textContent = 'No Data';
+            document.getElementById('least-games').textContent = 'No Data';
+            return;
+        }
+        
+        // Sort by average score for winner/loser
+        const sortedByAvgScore = [...leaderboard].sort((a, b) => b.avgScore - a.avgScore);
+        const overallWinner = sortedByAvgScore[0];
+        const overallLoser = sortedByAvgScore[sortedByAvgScore.length - 1];
+        
+        // Sort by games played for most/least games
+        const sortedByGames = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed);
+        const mostGames = sortedByGames[0].gamesPlayed;
+        const leastGames = sortedByGames[sortedByGames.length - 1].gamesPlayed;
+        
+        // Find all players with most games (handle ties)
+        const mostGamesPlayers = sortedByGames.filter(player => player.gamesPlayed === mostGames);
+        const leastGamesPlayers = sortedByGames.filter(player => player.gamesPlayed === leastGames);
+        
+        // Update overall winner widget
+        document.getElementById('overall-winner').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${overallWinner.user}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${overallWinner.avgScore} avg</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${overallWinner.gamesPlayed} games</div>
+        `;
+        
+        // Update overall loser widget
+        document.getElementById('overall-loser').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${overallLoser.user}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${overallLoser.avgScore} avg</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${overallLoser.gamesPlayed} games</div>
+        `;
+        
+        // Update most games widget (handle ties)
+        const mostGamesText = mostGamesPlayers.length > 1 
+            ? mostGamesPlayers.map(p => p.user).join(', ')
+            : mostGamesPlayers[0].user;
+        document.getElementById('most-games').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${mostGamesText}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${mostGames} games</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${mostGamesPlayers.length > 1 ? 'tied' : 'total'}</div>
+        `;
+        
+        // Update least games widget (handle ties)
+        const leastGamesText = leastGamesPlayers.length > 1 
+            ? leastGamesPlayers.map(p => p.user).join(', ')
+            : leastGamesPlayers[0].user;
+        document.getElementById('least-games').innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold;">${leastGamesText}</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">${leastGames} games</div>
+            <div style="font-size: 0.8rem; opacity: 0.6;">${leastGamesPlayers.length > 1 ? 'tied' : 'total'}</div>
         `;
     }
     
