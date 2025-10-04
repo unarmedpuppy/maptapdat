@@ -126,9 +126,9 @@ body {
 
 .header-controls {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
 .title {
@@ -202,9 +202,9 @@ body {
 
 /* Spinning Globe */
 .spinning-globe {
-    font-size: 2.5rem;
+    font-size: 2rem;
     text-shadow: 0 0 20px var(--accent-primary);
-    margin-bottom: 0.5rem;
+    margin-right: 0.5rem;
     display: block;
 }
 
@@ -873,9 +873,26 @@ tbody tr:last-child td {
     }
     
     .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
+        flex-direction: row;
+        gap: 0.5rem;
+        text-align: left;
+        align-items: center;
+    }
+    
+    .header-text {
+        flex: 1;
+    }
+    
+    .header-controls {
+        gap: 0.5rem;
+    }
+    
+    .spinning-globe {
+        font-size: 1.5rem;
+    }
+    
+    .theme-label {
+        font-size: 0.75rem;
     }
     
     .title {
