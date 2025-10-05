@@ -13,7 +13,7 @@ class MaptapDashboard {
         this.currentFilters = {
             player: '',
             date: '',
-            sort: 'avgScore'
+            sort: 'totalScore'
         };
         
         this.charts = {};
@@ -149,6 +149,11 @@ class MaptapDashboard {
             // Update players list with normalized names
             this.data.players = [...new Set(this.data.games.map(game => game.user))].sort();
             
+            // Set default to daily leaderboard (most recent date)
+            const mostRecentDate = this.getMostRecentDate();
+            this.currentFilters.date = mostRecentDate;
+            this.currentFilters.sort = 'totalScore';
+            
             this.populateFilters();
             this.applyFilters();
             this.updateLeaderboardSortIndicator(); // Initialize sort indicator
@@ -194,8 +199,10 @@ class MaptapDashboard {
             dateFilter.appendChild(option);
         });
         
-        // Don't set default date - let overall leaderboard show all data by default
-        // The daily leaderboard button will set the most recent date when clicked
+        // Set default values in UI
+        playerFilter.value = this.currentFilters.player;
+        dateFilter.value = this.currentFilters.date;
+        document.getElementById('sort-filter').value = this.currentFilters.sort;
     }
     
     applyFilters() {
@@ -265,6 +272,16 @@ class MaptapDashboard {
                 this.currentFilters.date = date;
                 this.currentFilters.sort = 'totalScore';
                 document.getElementById('date-filter').value = date;
+                document.getElementById('sort-filter').value = 'totalScore';
+                this.updateLeaderboardSortIndicator();
+                this.applyFilters();
+                this.updateLeaderboard();
+            } else if (section === 'leaderboard') {
+                // Default to daily leaderboard if no date parameter
+                const mostRecentDate = this.getMostRecentDate();
+                this.currentFilters.date = mostRecentDate;
+                this.currentFilters.sort = 'totalScore';
+                document.getElementById('date-filter').value = mostRecentDate;
                 document.getElementById('sort-filter').value = 'totalScore';
                 this.updateLeaderboardSortIndicator();
                 this.applyFilters();
