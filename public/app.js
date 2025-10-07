@@ -314,27 +314,27 @@ class MaptapDashboard {
     }
     
     async updateOverview() {
-        // Use filtered data if available, otherwise use all data
-        const dataToUse = this.filteredData || this.data;
+        // For overview page, use overall stats (unfiltered data) for most widgets
+        // except daily winner/loser which should use current day's data
         
-        // Update stats
-        document.getElementById('total-games').textContent = dataToUse.analytics.totalGames || 0;
-        document.getElementById('total-players').textContent = dataToUse.analytics.uniquePlayers || 0;
+        // Update overall stats using unfiltered data
+        document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
+        document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
         document.getElementById('perfect-scores').textContent = 
-            dataToUse.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
+            this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
         
-        const dateRange = dataToUse.analytics.dateRange;
+        const dateRange = this.data.analytics.dateRange;
         if (dateRange) {
             const start = new Date(dateRange.start).toLocaleDateString();
             const end = new Date(dateRange.end).toLocaleDateString();
             document.getElementById('date-range').textContent = `${start} - ${end}`;
         }
         
-        // Update daily winner and loser
-        this.updateDailyWinnerLoser(dataToUse.games);
+        // Update daily winner and loser using current day's data
+        this.updateDailyWinnerLoser(this.data.games);
         
-        // Update overall stats
-        this.updateOverallStats(dataToUse.games);
+        // Update overall stats using unfiltered data
+        this.updateOverallStats(this.data.games);
         
     }
     
