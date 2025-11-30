@@ -30,7 +30,7 @@ services:
       - "traefik.http.middlewares.maptapdat-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.maptapdat.middlewares=maptapdat-redirect"
       # Homepage integration
-      - "homepage.group=Apps"
+      - "homepage.group=Gaming"
       - "homepage.name=Maptap Data"
       - "homepage.icon=🗺️"
       - "homepage.href=https://maptapdat.server.unarmedpuppy.com"
