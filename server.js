@@ -435,6 +435,9 @@ app.get('/api/analytics', (req, res) => {
         .map(([user, count]) => ({ user, perfectScores: count }))
         .sort((a, b) => b.perfectScores - a.perfectScores);
     
+    // Calculate streaks
+    const streaks = calculateStreaks(gameGroups);
+    
     res.json({
         emojiFrequency: Object.entries(emojiCounts)
             .map(([emoji, count]) => ({ emoji, count }))
@@ -446,9 +449,120 @@ app.get('/api/analytics', (req, res) => {
         dateRange: {
             start: Array.from(dates).sort()[0],
             end: Array.from(dates).sort().slice(-1)[0]
-        }
+        },
+        streaks: streaks
     });
 });
+
+// Helper function to calculate streaks
+function calculateStreaks(gameGroups) {
+    // Group games by user
+    const userGames = {};
+    Object.values(gameGroups).forEach(game => {
+        if (!userGames[game.user]) {
+            userGames[game.user] = [];
+        }
+        userGames[game.user].push(game.date);
+    });
+    
+    // Get most recent date across all games
+    const allDates = Array.from(new Set(Object.values(gameGroups).map(g => g.date))).sort();
+    const mostRecentDate = allDates[allDates.length - 1];
+    
+    // Helper function to add days to a date string
+    function addDays(dateStr, days) {
+        const date = new Date(dateStr);
+        date.setDate(date.getDate() + days);
+        return date.toISOString().split('T')[0];
+    }
+    
+    // Helper function to check if two dates are consecutive
+    function isConsecutive(date1, date2) {
+        const nextDay = addDays(date1, 1);
+        return date2 === nextDay;
+    }
+    
+    const currentStreaks = [];
+    const longestStreaks = [];
+    
+    Object.entries(userGames).forEach(([user, dates]) => {
+        // Remove duplicates and sort dates
+        const uniqueDates = [...new Set(dates)].sort();
+        
+        if (uniqueDates.length === 0) return;
+        
+        // Calculate longest streak
+        let longestStreak = 1;
+        let currentStreakLength = 1;
+        let longestStartDate = uniqueDates[0];
+        let longestEndDate = uniqueDates[0];
+        let currentStartDate = uniqueDates[0];
+        
+        for (let i = 1; i < uniqueDates.length; i++) {
+            if (isConsecutive(uniqueDates[i - 1], uniqueDates[i])) {
+                currentStreakLength++;
+                if (currentStreakLength > longestStreak) {
+                    longestStreak = currentStreakLength;
+                    longestStartDate = currentStartDate;
+                    longestEndDate = uniqueDates[i];
+                }
+            } else {
+                currentStreakLength = 1;
+                currentStartDate = uniqueDates[i];
+            }
+        }
+        
+        longestStreaks.push({
+            user: user,
+            streak: longestStreak,
+            startDate: longestStartDate,
+            endDate: longestEndDate
+        });
+        
+        // Calculate current streak (ending at most recent date)
+        let currentStreak = 0;
+        let currentStreakStartDate = null;
+        
+        // Start from most recent date and work backwards
+        let checkDate = mostRecentDate;
+        let dateIndex = uniqueDates.indexOf(checkDate);
+        
+        if (dateIndex !== -1) {
+            // Found the most recent date, start counting backwards
+            currentStreak = 1;
+            currentStreakStartDate = checkDate;
+            
+            for (let i = dateIndex - 1; i >= 0; i--) {
+                if (isConsecutive(uniqueDates[i], uniqueDates[i + 1])) {
+                    currentStreak++;
+                    currentStreakStartDate = uniqueDates[i];
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        // Only add to current streaks if streak is active (ends at most recent date)
+        if (currentStreak > 0 && uniqueDates.includes(mostRecentDate)) {
+            currentStreaks.push({
+                user: user,
+                streak: currentStreak,
+                startDate: currentStreakStartDate,
+                endDate: mostRecentDate,
+                isActive: true
+            });
+        }
+    });
+    
+    // Sort streaks
+    currentStreaks.sort((a, b) => b.streak - a.streak);
+    longestStreaks.sort((a, b) => b.streak - a.streak);
+    
+    return {
+        currentStreaks: currentStreaks,
+        longestStreaks: longestStreaks
+    };
+}
 
 // Start server
 loadCSVData().then(() => {

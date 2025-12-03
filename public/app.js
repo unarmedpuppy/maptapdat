@@ -359,6 +359,61 @@ class MaptapDashboard {
         // Update overall stats using unfiltered data
         this.updateOverallStats(this.data.games);
         
+        // Update streaks
+        this.updateStreaks();
+    }
+    
+    updateStreaks() {
+        const streaks = this.data.analytics.streaks;
+        if (!streaks) return;
+        
+        // Render current streaks
+        const currentStreaksContainer = document.getElementById('current-streaks');
+        currentStreaksContainer.innerHTML = '';
+        
+        if (streaks.currentStreaks && streaks.currentStreaks.length > 0) {
+            streaks.currentStreaks.slice(0, 6).forEach(streak => {
+                const streakCard = this.createStreakCard(streak, true);
+                currentStreaksContainer.appendChild(streakCard);
+            });
+        } else {
+            currentStreaksContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No active streaks</p>';
+        }
+        
+        // Render longest streaks
+        const longestStreaksContainer = document.getElementById('longest-streaks');
+        longestStreaksContainer.innerHTML = '';
+        
+        if (streaks.longestStreaks && streaks.longestStreaks.length > 0) {
+            streaks.longestStreaks.slice(0, 6).forEach(streak => {
+                const streakCard = this.createStreakCard(streak, false);
+                longestStreaksContainer.appendChild(streakCard);
+            });
+        }
+    }
+    
+    createStreakCard(streak, isActive) {
+        const card = document.createElement('div');
+        card.className = `streak-card ${isActive ? 'active' : ''}`;
+        
+        const icon = isActive ? '🔥' : '🏆';
+        const label = isActive ? 'Days Active' : 'Days';
+        
+        // Format dates
+        const formatDate = (dateStr) => {
+            const [year, month, day] = dateStr.split('-');
+            return `${parseInt(month)}/${parseInt(day)}/${year}`;
+        };
+        
+        card.innerHTML = `
+            <div class="streak-icon">${icon}</div>
+            <div class="streak-value">${streak.streak}</div>
+            <div class="streak-label">${label}</div>
+            <div class="streak-player">${streak.user}</div>
+            <div class="streak-dates">${formatDate(streak.startDate)} - ${formatDate(streak.endDate)}</div>
+        `;
+        
+        return card;
     }
     
     updateDailyWinnerLoser(games) {
@@ -749,8 +804,35 @@ class MaptapDashboard {
         const tbody = document.querySelector('#leaderboard-table tbody');
         tbody.innerHTML = '';
         
+        // Get streak data
+        const streaks = this.data.analytics.streaks;
+        const currentStreaksMap = {};
+        const longestStreaksMap = {};
+        
+        if (streaks) {
+            streaks.currentStreaks?.forEach(s => {
+                currentStreaksMap[s.user] = s.streak;
+            });
+            streaks.longestStreaks?.forEach(s => {
+                longestStreaksMap[s.user] = s.streak;
+            });
+        }
+        
         this.data.leaderboard.forEach((player, index) => {
             const row = document.createElement('tr');
+            
+            // Get streak info for this player
+            const currentStreak = currentStreaksMap[player.user] || 0;
+            const longestStreak = longestStreaksMap[player.user] || 0;
+            
+            // Create streak display
+            let streakDisplay = '-';
+            if (currentStreak > 0) {
+                streakDisplay = `<span style="color: var(--accent-primary); font-weight: bold;">🔥 ${currentStreak}</span>`;
+            } else if (longestStreak > 0) {
+                streakDisplay = `<span style="color: var(--text-muted);">🏆 ${longestStreak}</span>`;
+            }
+            
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td><strong>${player.user}</strong></td>
@@ -759,6 +841,7 @@ class MaptapDashboard {
                 <td>${player.gamesPlayed}</td>
                 <td>${player.perfectScores}</td>
                 <td>${player.lowestScore}</td>
+                <td>${streakDisplay}</td>
             `;
             tbody.appendChild(row);
         });
