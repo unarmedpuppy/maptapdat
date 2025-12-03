@@ -250,6 +250,39 @@ app.get('/api/player/:player', (req, res) => {
         });
     });
     
+    // Calculate location performance (average score per location number)
+    const locationStats = {};
+    playerData.forEach(game => {
+        const locNum = game.location_number;
+        if (!locationStats[locNum]) {
+            locationStats[locNum] = {
+                location: locNum,
+                totalScore: 0,
+                attempts: 0,
+                avgScore: 0,
+                minScore: Infinity,
+                maxScore: 0
+            };
+        }
+        locationStats[locNum].totalScore += game.location_score;
+        locationStats[locNum].attempts++;
+        if (game.location_score < locationStats[locNum].minScore) {
+            locationStats[locNum].minScore = game.location_score;
+        }
+        if (game.location_score > locationStats[locNum].maxScore) {
+            locationStats[locNum].maxScore = game.location_score;
+        }
+    });
+    
+    // Calculate averages and find nemesis location (lowest average)
+    const locationStatsArray = Object.values(locationStats).map(loc => {
+        loc.avgScore = Math.round(loc.totalScore / loc.attempts);
+        loc.minScore = loc.minScore === Infinity ? 0 : loc.minScore;
+        return loc;
+    }).sort((a, b) => a.avgScore - b.avgScore);
+    
+    const nemesisLocation = locationStatsArray.length > 0 ? locationStatsArray[0].location : null;
+    
     const stats = {
         user: player,
         totalGames: gameDates.length,
@@ -259,7 +292,9 @@ app.get('/api/player/:player', (req, res) => {
         lowestScore: Math.min(...allLowestScores),
         highestScore: Math.max(...allHighestScores),
         gamesByDate: gamesByDate,
-        emojiCounts: emojiCounts
+        emojiCounts: emojiCounts,
+        locationStats: locationStatsArray,
+        nemesisLocation: nemesisLocation
     };
     
     res.json(stats);

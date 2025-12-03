@@ -728,6 +728,8 @@ class MaptapDashboard {
         this.createEmojiChart(dataToUse.games);
         this.createStreaksChart(dataToUse.games);
         this.createPerfectLeadersChart(dataToUse.games);
+        this.createLocationDifficultyChart();
+        this.createLocationHeatmap();
     }
     
     
@@ -1188,6 +1190,164 @@ class MaptapDashboard {
                         }
                     }
                 }
+            }
+        });
+    }
+    
+    createLocationDifficultyChart() {
+        const ctx = document.getElementById('location-difficulty-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        
+        if (this.charts.locationDifficulty) {
+            this.charts.locationDifficulty.destroy();
+        }
+        
+        const locationDifficulty = this.data.analytics.locationDifficulty || [];
+        
+        const labels = locationDifficulty.map(loc => `Location ${loc.location}`);
+        const data = locationDifficulty.map(loc => loc.avgScore);
+        
+        this.charts.locationDifficulty = new Chart(ctx2d, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Score',
+                    data: data,
+                    backgroundColor: data.map(score => {
+                        if (score >= 80) return '#00fff9';
+                        if (score >= 60) return '#00b8ff';
+                        if (score >= 40) return '#9600ff';
+                        return '#ff00c1';
+                    }),
+                    borderColor: '#4900ff',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Avg Score: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    async createLocationHeatmap() {
+        const heatmapContainer = document.getElementById('location-heatmap');
+        if (!heatmapContainer) return;
+        
+        heatmapContainer.innerHTML = '';
+        
+        // Get all players
+        const players = this.data.players;
+        
+        // Create header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'location-heatmap-header';
+        headerRow.textContent = 'Player';
+        heatmapContainer.appendChild(headerRow);
+        
+        for (let loc = 1; loc <= 5; loc++) {
+            const header = document.createElement('div');
+            header.className = 'location-heatmap-cell location-header';
+            header.textContent = `Loc ${loc}`;
+            heatmapContainer.appendChild(header);
+        }
+        
+        // Fetch location stats for each player and create rows
+        const playerLocationStats = {};
+        
+        // Use analytics data if available, otherwise fetch per player
+        for (const player of players) {
+            try {
+                const response = await fetch(`/api/player/${encodeURIComponent(player)}`);
+                if (response.ok) {
+                    const playerData = await response.json();
+                    playerLocationStats[player] = playerData.locationStats || [];
+                }
+            } catch (error) {
+                console.error(`Error fetching data for ${player}:`, error);
+            }
+        }
+        
+        // Create rows for each player
+        players.forEach(player => {
+            const stats = playerLocationStats[player] || [];
+            const nemesisLoc = playerLocationStats[player]?.[0]?.location || null;
+            
+            // Player name cell
+            const nameCell = document.createElement('div');
+            nameCell.className = 'location-heatmap-cell player-name';
+            nameCell.textContent = player;
+            heatmapContainer.appendChild(nameCell);
+            
+            // Location score cells
+            for (let loc = 1; loc <= 5; loc++) {
+                const locStat = stats.find(s => s.location === loc);
+                const cell = document.createElement('div');
+                cell.className = 'location-heatmap-cell';
+                
+                if (locStat) {
+                    const avgScore = locStat.avgScore;
+                    cell.textContent = avgScore;
+                    
+                    // Color code by score
+                    if (avgScore >= 80) {
+                        cell.classList.add('score-high');
+                    } else if (avgScore >= 60) {
+                        cell.classList.add('score-medium');
+                    } else {
+                        cell.classList.add('score-low');
+                    }
+                    
+                    // Highlight nemesis location
+                    if (loc === nemesisLoc) {
+                        cell.classList.add('nemesis');
+                        cell.title = 'Nemesis Location (Lowest Average)';
+                    } else {
+                        cell.title = `Avg: ${avgScore}, Min: ${locStat.minScore}, Max: ${locStat.maxScore}`;
+                    }
+                } else {
+                    cell.textContent = '-';
+                    cell.style.color = 'var(--text-muted)';
+                }
+                
+                heatmapContainer.appendChild(cell);
             }
         });
     }

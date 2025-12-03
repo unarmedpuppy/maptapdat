@@ -1396,6 +1396,102 @@ select:focus {
     }
 }
 
+/* Location Performance Section */
+.location-performance-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+}
+
+.location-performance-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.location-heatmap-container {
+    overflow-x: auto;
+}
+
+#location-heatmap {
+    display: grid;
+    grid-template-columns: auto repeat(5, 1fr);
+    gap: 0.5rem;
+    min-width: 600px;
+}
+
+.location-heatmap-header {
+    font-weight: bold;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    text-align: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+}
+
+.location-heatmap-cell {
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.location-heatmap-cell:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+    z-index: 1;
+    position: relative;
+}
+
+.location-heatmap-cell.player-name {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: bold;
+    text-align: left;
+    padding-left: 1rem;
+}
+
+.location-heatmap-cell.location-header {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    font-weight: bold;
+}
+
+/* Color scale for location scores */
+.location-heatmap-cell.score-high {
+    background: rgba(0, 255, 249, 0.3);
+    color: var(--text-primary);
+}
+
+.location-heatmap-cell.score-medium {
+    background: rgba(150, 0, 255, 0.3);
+    color: var(--text-primary);
+}
+
+.location-heatmap-cell.score-low {
+    background: rgba(255, 0, 193, 0.3);
+    color: var(--text-primary);
+}
+
+.location-heatmap-cell.nemesis {
+    border: 2px solid var(--accent-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+    .location-heatmap-container {
+        font-size: 0.8rem;
+    }
+    
+    .location-heatmap-cell {
+        padding: 0.5rem;
+    }
+}
+
 /* Comparison Modal */
 .modal {
     position: fixed;
