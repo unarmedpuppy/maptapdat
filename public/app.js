@@ -973,16 +973,22 @@ class MaptapDashboard {
     }
     
     async updateOverview() {
+        // Check if data is loaded
+        if (!this.data || !this.data.games || this.data.games.length === 0) {
+            return;
+        }
+        
         // For overview page, use overall stats (unfiltered data) for most widgets
         // except daily winner/loser which should use current day's data
         
         // Update overall stats using unfiltered data
-        document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
-        document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
-        document.getElementById('perfect-scores').textContent = 
-            this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
-        
-        const dateRange = this.data.analytics.dateRange;
+        if (this.data.analytics) {
+            document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
+            document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
+            document.getElementById('perfect-scores').textContent = 
+                this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
+            
+            const dateRange = this.data.analytics.dateRange;
         if (dateRange) {
             const start = new Date(dateRange.start).toLocaleDateString();
             const end = new Date(dateRange.end).toLocaleDateString();
