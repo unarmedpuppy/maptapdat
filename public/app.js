@@ -56,10 +56,51 @@ class MaptapDashboard {
     
     async init() {
         this.setupEventListeners();
-        await this.loadData();
-        this.populateFilters();
-        this.updateOverview();
-        this.hideLoading();
+        
+        // Show skeleton loading for charts
+        this.showSkeletonLoading('leaderboard-chart', 'chart');
+        this.showSkeletonLoading('trends-chart', 'chart');
+        
+        try {
+            await this.loadData();
+            this.populateFilters();
+            this.updateOverview();
+            this.hideLoading();
+            
+            // Add tooltips to stat cards
+            setTimeout(() => this.addTooltipsToStats(), 500);
+        } catch (error) {
+            this.hideLoading();
+            this.showError('Failed to load data. Please refresh the page.');
+            console.error('Error initializing dashboard:', error);
+        }
+    }
+    
+    addTooltipsToStats() {
+        // Add tooltips to overview stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        const tooltips = {
+            'daily-winner': 'Player with the highest score today',
+            'daily-loser': 'Player with the lowest score today',
+            'overall-winner': 'Player with the highest average score',
+            'overall-loser': 'Player with the lowest average score',
+            'most-games': 'Player who has played the most games',
+            'least-games': 'Player who has played the fewest games',
+            'total-games': 'Total number of games played',
+            'total-players': 'Number of unique players',
+            'perfect-scores': 'Total number of perfect scores (1000 points)',
+            'date-range': 'Date range of all games in the dataset'
+        };
+        
+        statCards.forEach(card => {
+            const statValue = card.querySelector('.stat-value');
+            if (statValue) {
+                const id = statValue.id;
+                if (tooltips[id]) {
+                    this.addTooltip(card, tooltips[id], 'top');
+                }
+            }
+        });
     }
     
     setupEventListeners() {
