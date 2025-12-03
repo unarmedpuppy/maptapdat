@@ -274,70 +274,109 @@ class MaptapDashboard {
         }
         
         // Raw data controls
-        document.getElementById('export-csv').addEventListener('click', () => {
-            this.exportCSV();
-        });
+        const exportCsv = document.getElementById('export-csv');
+        if (exportCsv) {
+            exportCsv.addEventListener('click', () => {
+                this.exportCSV();
+            });
+        }
         
-        document.getElementById('export-filtered-csv').addEventListener('click', () => {
-            this.exportFilteredCSV();
-        });
+        const exportFilteredCsv = document.getElementById('export-filtered-csv');
+        if (exportFilteredCsv) {
+            exportFilteredCsv.addEventListener('click', () => {
+                this.exportFilteredCSV();
+            });
+        }
         
-        document.getElementById('refresh-data').addEventListener('click', () => {
-            this.loadData();
-        });
+        const refreshData = document.getElementById('refresh-data');
+        if (refreshData) {
+            refreshData.addEventListener('click', () => {
+                this.loadData();
+            });
+        }
         
         // Export chart buttons
-        document.getElementById('export-leaderboard-chart').addEventListener('click', () => {
-            this.exportChart('leaderboard');
-        });
+        const exportLeaderboardChart = document.getElementById('export-leaderboard-chart');
+        if (exportLeaderboardChart) {
+            exportLeaderboardChart.addEventListener('click', () => {
+                this.exportChart('leaderboard');
+            });
+        }
         
-        document.getElementById('export-trends-chart').addEventListener('click', () => {
-            this.exportChart('trends');
-        });
+        const exportTrendsChart = document.getElementById('export-trends-chart');
+        if (exportTrendsChart) {
+            exportTrendsChart.addEventListener('click', () => {
+                this.exportChart('trends');
+            });
+        }
         
-        document.getElementById('export-all-charts').addEventListener('click', () => {
-            this.exportAllCharts();
-        });
+        const exportAllCharts = document.getElementById('export-all-charts');
+        if (exportAllCharts) {
+            exportAllCharts.addEventListener('click', () => {
+                this.exportAllCharts();
+            });
+        }
         
         // Share link buttons
-        document.getElementById('share-leaderboard-link').addEventListener('click', () => {
-            this.shareLink('leaderboard');
-        });
+        const shareLeaderboardLink = document.getElementById('share-leaderboard-link');
+        if (shareLeaderboardLink) {
+            shareLeaderboardLink.addEventListener('click', () => {
+                this.shareLink('leaderboard');
+            });
+        }
         
-        document.getElementById('share-trends-link').addEventListener('click', () => {
-            this.shareLink('trends');
-        });
+        const shareTrendsLink = document.getElementById('share-trends-link');
+        if (shareTrendsLink) {
+            shareTrendsLink.addEventListener('click', () => {
+                this.shareLink('trends');
+            });
+        }
         
-        document.getElementById('share-analytics-link').addEventListener('click', () => {
-            this.shareLink('analytics');
-        });
+        const shareAnalyticsLink = document.getElementById('share-analytics-link');
+        if (shareAnalyticsLink) {
+            shareAnalyticsLink.addEventListener('click', () => {
+                this.shareLink('analytics');
+            });
+        }
         
-        document.getElementById('share-rawdata-link').addEventListener('click', () => {
-            this.shareLink('rawdata');
-        });
+        const shareRawdataLink = document.getElementById('share-rawdata-link');
+        if (shareRawdataLink) {
+            shareRawdataLink.addEventListener('click', () => {
+                this.shareLink('rawdata');
+            });
+        }
         
         // Pagination controls
-        document.getElementById('prev-page').addEventListener('click', () => {
-            if (this.currentPage > 1) {
-                this.currentPage--;
-                this.updateRawDataTable();
-            }
-        });
+        const prevPage = document.getElementById('prev-page');
+        if (prevPage) {
+            prevPage.addEventListener('click', () => {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.updateRawDataTable();
+                }
+            });
+        }
         
-        document.getElementById('next-page').addEventListener('click', () => {
-            const dataToUse = this.filteredData || this.data;
-            const totalPages = Math.ceil(dataToUse.games.length / this.rowsPerPage);
-            if (this.currentPage < totalPages) {
-                this.currentPage++;
-                this.updateRawDataTable();
-            }
-        });
+        const nextPage = document.getElementById('next-page');
+        if (nextPage) {
+            nextPage.addEventListener('click', () => {
+                const dataToUse = this.filteredData || this.data;
+                const totalPages = Math.ceil(dataToUse.games.length / this.rowsPerPage);
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                    this.updateRawDataTable();
+                }
+            });
+        }
         
-        document.getElementById('rows-per-page').addEventListener('change', (e) => {
-            this.rowsPerPage = parseInt(e.target.value);
-            this.currentPage = 1;
-            this.updateRawDataTable();
-        });
+        const rowsPerPage = document.getElementById('rows-per-page');
+        if (rowsPerPage) {
+            rowsPerPage.addEventListener('change', (e) => {
+                this.rowsPerPage = parseInt(e.target.value);
+                this.currentPage = 1;
+                this.updateRawDataTable();
+            });
+        }
         
         // Intersection Observer for lazy loading charts
         // Initialize chartsLoaded Set if not already initialized
