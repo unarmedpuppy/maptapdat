@@ -1578,6 +1578,194 @@ select:focus {
     }
 }
 
+/* Player Profile Section */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.profile-content {
+    padding: 1rem 0;
+}
+
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.profile-stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.profile-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.profile-stat-card.active-streak {
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-stat-card .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+    margin-bottom: 0.25rem;
+}
+
+.profile-stat-card .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.profile-nemesis {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.profile-nemesis h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--accent-primary);
+}
+
+.profile-location-performance {
+    margin-bottom: 2rem;
+}
+
+.profile-location-performance h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.location-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.location-stat {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    text-align: center;
+}
+
+.location-stat.nemesis {
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.location-stat .location-number {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.location-stat .location-avg {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.location-stat .location-range {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.profile-performance-calendar {
+    margin-top: 2rem;
+}
+
+.profile-performance-calendar h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+}
+
+.calendar-cell {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    transition: transform 0.2s;
+}
+
+.calendar-cell:hover {
+    transform: scale(1.05);
+    z-index: 1;
+    position: relative;
+}
+
+.calendar-cell.score-excellent {
+    background: rgba(0, 255, 249, 0.3);
+    border-color: #00fff9;
+}
+
+.calendar-cell.score-good {
+    background: rgba(0, 184, 255, 0.3);
+    border-color: #00b8ff;
+}
+
+.calendar-cell.score-average {
+    background: rgba(150, 0, 255, 0.3);
+    border-color: #9600ff;
+}
+
+.calendar-cell.score-poor {
+    background: rgba(255, 0, 193, 0.3);
+    border-color: #ff00c1;
+}
+
+.calendar-cell .calendar-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.calendar-cell .calendar-score {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .profile-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .location-breakdown {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Comparison Modal */
 .modal {
     position: fixed;

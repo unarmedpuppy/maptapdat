@@ -166,6 +166,41 @@ class MaptapDashboard {
         document.getElementById('last-30-days').addEventListener('click', () => {
             this.setDateRange(30);
         });
+        
+        // Player profile navigation
+        document.getElementById('back-to-leaderboard').addEventListener('click', () => {
+            this.showSection('leaderboard');
+            window.location.hash = 'leaderboard';
+            document.getElementById('profile-nav-item').classList.add('hidden');
+        });
+        
+        // Make player names clickable in leaderboard
+        setTimeout(() => {
+            this.makePlayerNamesClickable();
+        }, 1000);
+    }
+    
+    makePlayerNamesClickable() {
+        const tbody = document.querySelector('#leaderboard-table tbody');
+        if (!tbody) return;
+        
+        tbody.querySelectorAll('td:nth-child(2)').forEach(cell => {
+            const playerName = cell.textContent.trim();
+            if (playerName && !cell.querySelector('a')) {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = playerName;
+                link.style.cursor = 'pointer';
+                link.style.color = 'inherit';
+                link.style.textDecoration = 'none';
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showPlayerProfile(playerName);
+                });
+                cell.innerHTML = '';
+                cell.appendChild(link);
+            }
+        });
     }
     
     setDateRange(days) {
@@ -317,12 +352,19 @@ class MaptapDashboard {
     
     handleHashChange() {
         const hash = window.location.hash.substring(1); // Remove the #
-        const validSections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
+        const validSections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata', 'player-profile'];
         
-        // Check if hash contains a date parameter for daily leaderboard
+        // Parse hash for section and params
         const hashParts = hash.split('?');
         const section = hashParts[0];
         const params = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
+        
+        // Check for player profile route: player-profile?player=name
+        if (section === 'player-profile' && params && params.has('player')) {
+            const playerName = params.get('player');
+            this.showPlayerProfile(playerName);
+            return;
+        }
         
         if (hash && validSections.includes(section)) {
             this.showSection(section);
@@ -371,7 +413,169 @@ class MaptapDashboard {
             case 'rawdata':
                 this.updateRawData();
                 break;
+            case 'player-profile':
+                // Profile content is loaded dynamically
+                break;
         }
+    }
+    
+    async showPlayerProfile(playerName) {
+        // Update URL hash
+        window.location.hash = `player-profile?player=${encodeURIComponent(playerName)}`;
+        
+        // Show profile section
+        this.showSection('player-profile');
+        
+        // Show profile nav item
+        document.getElementById('profile-nav-item').classList.remove('hidden');
+        
+        // Load and display profile data
+        await this.loadPlayerProfile(playerName);
+    }
+    
+    async loadPlayerProfile(playerName) {
+        try {
+            const response = await fetch(`/api/player/${encodeURIComponent(playerName)}`);
+            if (!response.ok) {
+                throw new Error('Player not found');
+            }
+            
+            const playerData = await response.json();
+            this.renderPlayerProfile(playerData);
+        } catch (error) {
+            console.error('Error loading player profile:', error);
+            document.getElementById('profile-content').innerHTML = 
+                '<p style="color: var(--error);">Error loading player profile. Please try again.</p>';
+        }
+    }
+    
+    renderPlayerProfile(playerData) {
+        const content = document.getElementById('profile-content');
+        const nameElement = document.getElementById('profile-player-name');
+        
+        nameElement.textContent = playerData.user;
+        
+        // Format dates
+        const formatDate = (dateStr) => {
+            const [year, month, day] = dateStr.split('-');
+            return `${parseInt(month)}/${parseInt(day)}/${year}`;
+        };
+        
+        // Get streak info
+        const streaks = this.data.analytics?.streaks;
+        const currentStreak = streaks?.currentStreaks?.find(s => s.user === playerData.user);
+        const longestStreak = streaks?.longestStreaks?.find(s => s.user === playerData.user);
+        
+        content.innerHTML = `
+            <div class="profile-stats-grid">
+                <div class="profile-stat-card">
+                    <div class="stat-icon">🎮</div>
+                    <div class="stat-value">${playerData.totalGames}</div>
+                    <div class="stat-label">Total Games</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-value">${playerData.avgScore}</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">${playerData.perfectScores}</div>
+                    <div class="stat-label">Perfect Scores</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">${playerData.highestScore}</div>
+                    <div class="stat-label">Highest Score</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="stat-icon">📉</div>
+                    <div class="stat-value">${playerData.lowestScore}</div>
+                    <div class="stat-label">Lowest Score</div>
+                </div>
+                ${currentStreak ? `
+                <div class="profile-stat-card active-streak">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-value">${currentStreak.streak}</div>
+                    <div class="stat-label">Current Streak</div>
+                </div>
+                ` : ''}
+                ${longestStreak ? `
+                <div class="profile-stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">${longestStreak.streak}</div>
+                    <div class="stat-label">Longest Streak</div>
+                </div>
+                ` : ''}
+            </div>
+            
+            ${playerData.nemesisLocation ? `
+            <div class="profile-nemesis">
+                <h3>🎯 Nemesis Location</h3>
+                <p>Location ${playerData.nemesisLocation} is your toughest challenge!</p>
+            </div>
+            ` : ''}
+            
+            <div class="profile-location-performance">
+                <h3>Location Performance</h3>
+                <div class="location-breakdown">
+                    ${playerData.locationStats?.map(loc => `
+                        <div class="location-stat ${loc.location === playerData.nemesisLocation ? 'nemesis' : ''}">
+                            <div class="location-number">Location ${loc.location}</div>
+                            <div class="location-avg">Avg: ${loc.avgScore}</div>
+                            <div class="location-range">Range: ${loc.minScore} - ${loc.maxScore}</div>
+                        </div>
+                    `).join('') || '<p>No location data available</p>'}
+                </div>
+            </div>
+            
+            <div class="profile-performance-calendar">
+                <h3>Performance Calendar</h3>
+                <div id="performance-calendar" class="calendar-grid"></div>
+            </div>
+        `;
+        
+        // Render performance calendar
+        this.renderPerformanceCalendar(playerData);
+    }
+    
+    renderPerformanceCalendar(playerData) {
+        const calendarContainer = document.getElementById('performance-calendar');
+        if (!calendarContainer || !playerData.gamesByDate) return;
+        
+        const games = Object.entries(playerData.gamesByDate)
+            .map(([date, game]) => ({ date, ...game }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+        
+        calendarContainer.innerHTML = '';
+        
+        games.forEach(game => {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell';
+            
+            // Color code by score
+            const score = game.totalScore;
+            if (score >= 900) {
+                cell.classList.add('score-excellent');
+            } else if (score >= 800) {
+                cell.classList.add('score-good');
+            } else if (score >= 700) {
+                cell.classList.add('score-average');
+            } else {
+                cell.classList.add('score-poor');
+            }
+            
+            const [year, month, day] = game.date.split('-');
+            const displayDate = `${parseInt(month)}/${parseInt(day)}`;
+            
+            cell.innerHTML = `
+                <div class="calendar-date">${displayDate}</div>
+                <div class="calendar-score">${score}</div>
+            `;
+            
+            cell.title = `${game.date}: ${score} points`;
+            calendarContainer.appendChild(cell);
+        });
     }
     
     async updateOverview() {
@@ -959,9 +1163,12 @@ class MaptapDashboard {
                 streakDisplay = `<span style="color: var(--text-muted);">🏆 ${longestStreak}</span>`;
             }
             
+            // Make player name clickable
+            const playerNameCell = `<td><strong><a href="#" class="player-link" data-player="${player.user}">${player.user}</a></strong></td>`;
+            
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td><strong>${player.user}</strong></td>
+                ${playerNameCell}
                 <td>${player.totalScore.toLocaleString()}</td>
                 <td>${player.avgScore}</td>
                 <td>${player.gamesPlayed}</td>
@@ -970,6 +1177,15 @@ class MaptapDashboard {
                 <td>${streakDisplay}</td>
             `;
             tbody.appendChild(row);
+        });
+        
+        // Add click handlers for player links
+        tbody.querySelectorAll('.player-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const playerName = link.dataset.player;
+                this.showPlayerProfile(playerName);
+            });
         });
     }
     

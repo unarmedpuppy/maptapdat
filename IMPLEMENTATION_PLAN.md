@@ -158,7 +158,7 @@ Show per-player breakdown of which location numbers are hardest/easiest, with lo
 ---
 
 ### 4. Time-Based Aggregations
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** High  
 **Estimated Effort:** 5-6 hours
@@ -202,17 +202,17 @@ Add weekly/monthly summaries, rolling averages, and time period selector.
    - Test with edge cases (incomplete periods)
 
 #### Acceptance Criteria
-- [ ] Can filter by week/month/quarter/year
-- [ ] Rolling averages calculated correctly
-- [ ] Period summaries displayed
-- [ ] Trends chart shows aggregated data
-- [ ] Quick filters work (Last 7/30 days)
+- [x] Can filter by week/month/quarter/year
+- [x] Rolling averages calculated correctly
+- [x] Period summaries displayed
+- [x] Trends chart shows aggregated data
+- [x] Quick filters work (Last 7/30 days)
 
 ---
 
 ### 5. Player Profile Pages
-**Status:** 🔵 Unclaimed  
-**Claimed By:** _  
+**Status:** 🟡 In Progress  
+**Claimed By:** Composer AI  
 **Priority:** High  
 **Estimated Effort:** 6-8 hours
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 3
+- **Completed:** 4
 - **In Progress:** 1
-- **Unclaimed:** 21
+- **Unclaimed:** 20
 - **Blocked:** 0
 
 ---

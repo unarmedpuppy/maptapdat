@@ -53,6 +53,7 @@
             <button class="nav-item" data-section="trends">Trends</button>
             <button class="nav-item" data-section="analytics">Analytics</button>
             <button class="nav-item" data-section="rawdata">Raw Data</button>
+            <button class="nav-item hidden" data-section="player-profile" id="profile-nav-item">Profile</button>
         </nav>
 
         <!-- Filters -->
@@ -255,6 +256,17 @@
                     <canvas id="trends-chart"></canvas>
                 </div>
                 <div id="period-summaries" class="period-summaries"></div>
+            </section>
+
+            <!-- Player Profile Section -->
+            <section id="player-profile" class="section">
+                <div class="profile-header">
+                    <button class="btn btn-secondary" id="back-to-leaderboard">← Back to Leaderboard</button>
+                    <h2 id="profile-player-name">Player Profile</h2>
+                </div>
+                <div id="profile-content" class="profile-content">
+                    <!-- Profile stats will be loaded here -->
+                </div>
             </section>
 
             <!-- Analytics Section -->
