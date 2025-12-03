@@ -376,7 +376,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Nice-to-Have Features
 
 ### 11. Achievements/Badges
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 3-4 hours
@@ -388,15 +388,15 @@ Create dedicated profile pages for each player with detailed stats, records, and
 4. Add achievement leaderboard
 
 #### Acceptance Criteria
-- [ ] Badges awarded correctly
-- [ ] Badges visible on profiles
-- [ ] Achievement leaderboard works
+- [x] Badges awarded correctly
+- [x] Badges visible on profiles
+- [x] Achievement leaderboard works
 
 ---
 
 ### 12. Predictions and Insights
-**Status:** 🔵 Unclaimed  
-**Claimed By:** _  
+**Status:** 🟡 In Progress  
+**Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 4-5 hours
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 10
+- **Completed:** 11
 - **In Progress:** 0
-- **Unclaimed:** 15
+- **Unclaimed:** 14
 - **Blocked:** 0
 
 ---

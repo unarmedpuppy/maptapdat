@@ -1949,6 +1949,197 @@ select:focus {
     }
 }
 
+/* Insights Section */
+.insights-section,
+.predictions-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+}
+
+.insights-section h3,
+.predictions-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.insights-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.insight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.insight-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.insight-card.insight-positive {
+    border-left: 4px solid #00fff9;
+}
+
+.insight-card.insight-accent {
+    border-left: 4px solid #ff00c1;
+}
+
+.insight-card.insight-info {
+    border-left: 4px solid #00b8ff;
+}
+
+.insight-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.insight-content {
+    flex: 1;
+}
+
+.insight-title {
+    font-weight: bold;
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.insight-message {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Predictions Section */
+.predictions-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.prediction-card {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 4px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+
+.prediction-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-primary);
+}
+
+.prediction-player {
+    font-weight: bold;
+    font-size: 1rem;
+    color: var(--accent-primary);
+    margin-bottom: 0.75rem;
+}
+
+.prediction-score {
+    margin-bottom: 0.75rem;
+}
+
+.predicted-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.predicted-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.prediction-trend {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.confidence-badge.high {
+    background: rgba(0, 255, 249, 0.2);
+    color: #00fff9;
+}
+
+.confidence-badge.medium {
+    background: rgba(150, 0, 255, 0.2);
+    color: #9600ff;
+}
+
+.recommendation-card {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.recommendation-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.recommendation-content {
+    flex: 1;
+}
+
+.recommendation-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.recommendation-message {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .insights-container,
+    .predictions-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .recommendation-card {
+        grid-column: 1;
+    }
+}
+
 /* Player Profile Section */
 .profile-header {
     display: flex;

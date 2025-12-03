@@ -1000,6 +1000,238 @@ class MaptapDashboard {
         
         // Update achievements leaderboard
         this.updateAchievementsLeaderboard();
+        
+        // Update insights and predictions
+        this.updateInsights();
+        this.updatePredictions();
+    }
+    
+    updateInsights() {
+        const container = document.getElementById('insights-container');
+        if (!container) return;
+        
+        const insights = [];
+        const dataToUse = this.filteredData || this.data;
+        
+        // Insight 1: Most improved player
+        const playerImprovements = [];
+        this.data.players.forEach(player => {
+            const playerGames = dataToUse.games.filter(g => g.user === player);
+            if (playerGames.length < 10) return;
+            
+            const dates = [...new Set(playerGames.map(g => g.date))].sort();
+            const scores = dates.map(date => {
+                const game = playerGames.find(g => g.date === date);
+                return game ? game.total_score : null;
+            }).filter(s => s !== null);
+            
+            if (scores.length < 10) return;
+            
+            const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
+            const secondHalf = scores.slice(Math.floor(scores.length / 2));
+            const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+            const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+            const improvement = secondAvg - firstAvg;
+            
+            playerImprovements.push({ player, improvement, recentAvg: secondAvg });
+        });
+        
+        playerImprovements.sort((a, b) => b.improvement - a.improvement);
+        if (playerImprovements.length > 0 && playerImprovements[0].improvement > 50) {
+            insights.push({
+                type: 'improvement',
+                icon: '📈',
+                title: 'Most Improved Player',
+                message: `${playerImprovements[0].player} has improved by ${Math.round(playerImprovements[0].improvement)} points on average!`,
+                color: 'positive'
+            });
+        }
+        
+        // Insight 2: Most consistent player
+        const playerConsistency = [];
+        this.data.players.forEach(player => {
+            const playerGames = dataToUse.games.filter(g => g.user === player);
+            if (playerGames.length < 10) return;
+            
+            const dates = [...new Set(playerGames.map(g => g.date))].sort();
+            const scores = dates.map(date => {
+                const game = playerGames.find(g => g.date === date);
+                return game ? game.total_score : null;
+            }).filter(s => s !== null);
+            
+            if (scores.length < 10) return;
+            
+            const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+            const stdDev = Math.sqrt(variance);
+            
+            playerConsistency.push({ player, stdDev, avgScore: mean });
+        });
+        
+        playerConsistency.sort((a, b) => a.stdDev - b.stdDev);
+        if (playerConsistency.length > 0 && playerConsistency[0].stdDev < 60) {
+            insights.push({
+                type: 'consistency',
+                icon: '📊',
+                title: 'Most Consistent Player',
+                message: `${playerConsistency[0].player} has the most consistent scores (std dev: ${Math.round(playerConsistency[0].stdDev)})`,
+                color: 'positive'
+            });
+        }
+        
+        // Insight 3: Hot streak
+        const streaks = this.data.analytics?.streaks;
+        if (streaks && streaks.currentStreaks && streaks.currentStreaks.length > 0) {
+            const longestCurrent = streaks.currentStreaks.reduce((max, s) => s.streak > max.streak ? s : max, streaks.currentStreaks[0]);
+            if (longestCurrent.streak >= 5) {
+                insights.push({
+                    type: 'streak',
+                    icon: '🔥',
+                    title: 'Hot Streak',
+                    message: `${longestCurrent.player} is on a ${longestCurrent.streak}-day streak!`,
+                    color: 'accent'
+                });
+            }
+        }
+        
+        // Insight 4: Location difficulty insight
+        const locationDifficulty = this.data.analytics?.locationDifficulty;
+        if (locationDifficulty && locationDifficulty.length > 0) {
+            const hardest = locationDifficulty[locationDifficulty.length - 1];
+            const easiest = locationDifficulty[0];
+            insights.push({
+                type: 'location',
+                icon: '🎯',
+                title: 'Location Insights',
+                message: `Location ${hardest.location_number} is the hardest (avg: ${hardest.avgScore}), Location ${easiest.location_number} is the easiest (avg: ${easiest.avgScore})`,
+                color: 'info'
+            });
+        }
+        
+        // Display insights
+        if (insights.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No insights available yet. Keep playing to generate insights!</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        insights.forEach(insight => {
+            const card = document.createElement('div');
+            card.className = `insight-card insight-${insight.color}`;
+            card.innerHTML = `
+                <div class="insight-icon">${insight.icon}</div>
+                <div class="insight-content">
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-message">${insight.message}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+    
+    updatePredictions() {
+        const container = document.getElementById('predictions-container');
+        if (!container) return;
+        
+        const predictions = [];
+        const dataToUse = this.filteredData || this.data;
+        
+        // Prediction 1: Next score prediction for each player
+        this.data.players.forEach(player => {
+            const playerGames = dataToUse.games.filter(g => g.user === player);
+            if (playerGames.length < 5) return;
+            
+            const dates = [...new Set(playerGames.map(g => g.date))].sort();
+            const scores = dates.map(date => {
+                const game = playerGames.find(g => g.date === date);
+                return game ? game.total_score : null;
+            }).filter(s => s !== null);
+            
+            if (scores.length < 5) return;
+            
+            // Use linear regression to predict next score
+            const n = scores.length;
+            const x = scores.map((_, i) => i);
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = scores.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * scores[i], 0);
+            const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            const predictedScore = Math.round(slope * n + intercept);
+            const recentAvg = scores.slice(-5).reduce((a, b) => a + b, 0) / 5;
+            
+            // Use weighted average: 70% prediction, 30% recent average
+            const finalPrediction = Math.round(predictedScore * 0.7 + recentAvg * 0.3);
+            
+            // Clamp to reasonable range
+            const clampedPrediction = Math.max(0, Math.min(1000, finalPrediction));
+            
+            predictions.push({
+                player: player,
+                predictedScore: clampedPrediction,
+                confidence: scores.length >= 10 ? 'high' : 'medium',
+                trend: slope > 0 ? 'improving' : slope < 0 ? 'declining' : 'stable'
+            });
+        });
+        
+        // Sort by predicted score
+        predictions.sort((a, b) => b.predictedScore - a.predictedScore);
+        
+        // Display top 5 predictions
+        if (predictions.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">Not enough data for predictions yet. Keep playing!</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        predictions.slice(0, 5).forEach(pred => {
+            const card = document.createElement('div');
+            card.className = 'prediction-card';
+            const trendIcon = pred.trend === 'improving' ? '📈' : pred.trend === 'declining' ? '📉' : '➡️';
+            const confidenceBadge = pred.confidence === 'high' ? '<span class="confidence-badge high">High Confidence</span>' : '<span class="confidence-badge medium">Medium Confidence</span>';
+            
+            card.innerHTML = `
+                <div class="prediction-player">${pred.player}</div>
+                <div class="prediction-score">
+                    <span class="predicted-value">${pred.predictedScore}</span>
+                    <span class="predicted-label">predicted</span>
+                </div>
+                <div class="prediction-trend">
+                    ${trendIcon} ${pred.trend}
+                </div>
+                ${confidenceBadge}
+            `;
+            
+            card.addEventListener('click', () => {
+                this.showPlayerProfile(pred.player);
+            });
+            
+            container.appendChild(card);
+        });
+        
+        // Add recommendation
+        if (predictions.length > 0) {
+            const topPrediction = predictions[0];
+            const recommendationCard = document.createElement('div');
+            recommendationCard.className = 'recommendation-card';
+            recommendationCard.innerHTML = `
+                <div class="recommendation-icon">💡</div>
+                <div class="recommendation-content">
+                    <div class="recommendation-title">Recommendation</div>
+                    <div class="recommendation-message">
+                        ${topPrediction.trend === 'improving' 
+                            ? `Keep up the great work, ${topPrediction.player}! Your scores are trending upward.`
+                            : topPrediction.trend === 'declining'
+                            ? `${topPrediction.player}, consider focusing on your weaker locations to improve your scores.`
+                            : `${topPrediction.player} is maintaining consistent performance.`}
+                    </div>
+                </div>
+            `;
+            container.appendChild(recommendationCard);
+        }
     }
     
     updateAchievementsLeaderboard() {
