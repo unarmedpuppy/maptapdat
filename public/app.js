@@ -2143,6 +2143,12 @@ class MaptapDashboard {
         this.createScoreDistributionChart(dataToUse.games);
         this.createImprovementTrendsChart();
         this.updatePlayerAnalytics();
+        
+        // Advanced visualizations
+        this.createRadarChart();
+        this.createBoxPlotChart(dataToUse.games);
+        this.createCorrelationMatrix(dataToUse.games);
+        this.createCalendarHeatmap(dataToUse.games);
     }
     
     

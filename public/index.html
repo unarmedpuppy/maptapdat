@@ -378,6 +378,44 @@
                     </div>
                 </div>
                 
+                <!-- Advanced Visualizations Section -->
+                <div class="advanced-visualizations-section">
+                    <h3>📊 Advanced Visualizations</h3>
+                    <div class="advanced-viz-grid">
+                        <div class="analytics-card">
+                            <h3>Player Radar Chart</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                                Compare players across multiple dimensions
+                            </p>
+                            <select id="radar-player-select" class="viz-select" aria-label="Select player for radar chart">
+                                <option value="">Select Player...</option>
+                            </select>
+                            <canvas id="radar-chart"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Score Distribution Box Plot</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                                Distribution of scores by player
+                            </p>
+                            <canvas id="box-plot-chart"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Correlation Analysis</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                                Relationships between metrics
+                            </p>
+                            <div id="correlation-matrix" class="correlation-matrix"></div>
+                        </div>
+                        <div class="analytics-card full-width">
+                            <h3>Activity Calendar Heatmap</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                                Daily activity across all players
+                            </p>
+                            <div id="calendar-heatmap" class="calendar-heatmap-container"></div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Advanced Analytics Section -->
                 <div class="advanced-analytics-section">
                     <h3>Player Analytics</h3>
