@@ -1085,6 +1085,9 @@ class MaptapDashboard {
             return;
         }
         
+        // Update last updated timestamp
+        this.updateLastUpdatedTimestamp();
+        
         // For overview page, use overall stats (unfiltered data) for most widgets
         // except daily winner/loser which should use current day's data
         
@@ -1213,6 +1216,49 @@ class MaptapDashboard {
             </div>
         `;
         container.appendChild(completenessCard);
+    }
+    
+    updateLastUpdatedTimestamp() {
+        const timestampElement = document.getElementById('last-updated-timestamp');
+        if (!timestampElement) return;
+        
+        if (!this.data || !this.data.games || this.data.games.length === 0) {
+            timestampElement.querySelector('.timestamp-text').textContent = 'Last updated: No data';
+            return;
+        }
+        
+        const games = this.data.games;
+        const dates = [...new Set(games.map(g => g.date))].sort();
+        
+        // Last updated - most recent game date
+        const mostRecentDate = dates[dates.length - 1];
+        const lastUpdatedDate = new Date(mostRecentDate + 'T00:00:00');
+        const now = new Date();
+        const diffMs = now - lastUpdatedDate;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        
+        let lastUpdatedRelative;
+        if (diffDays > 0) {
+            lastUpdatedRelative = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        } else if (diffHours > 0) {
+            lastUpdatedRelative = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        } else if (diffMinutes > 0) {
+            lastUpdatedRelative = `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+        } else {
+            lastUpdatedRelative = 'Just now';
+        }
+        
+        timestampElement.querySelector('.timestamp-text').textContent = `Last updated: ${lastUpdatedRelative}`;
+        
+        // Update every minute
+        if (this.lastUpdatedInterval) {
+            clearInterval(this.lastUpdatedInterval);
+        }
+        this.lastUpdatedInterval = setInterval(() => {
+            this.updateLastUpdatedTimestamp();
+        }, 60000); // Update every minute
     }
     
     calculateDataQuality() {
