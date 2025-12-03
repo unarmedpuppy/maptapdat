@@ -585,6 +585,40 @@ body {
     color: var(--text-primary);
 }
 
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.overview-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+.last-updated-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.timestamp-icon {
+    font-size: 1rem;
+}
+
+.timestamp-text {
+    font-family: 'Courier New', monospace;
+}
+
 /* Stats grid */
 .stats-grid {
     display: grid;
