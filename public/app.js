@@ -1001,21 +1001,33 @@ class MaptapDashboard {
         // Update achievements leaderboard
         this.updateAchievementsLeaderboard();
         
-        // Update insights and predictions
-        this.updateInsights();
-        this.updatePredictions();
+        // Update insights and predictions (only if overview section is active)
+        if (this.currentSection === 'overview') {
+            try {
+                this.updateInsights();
+                this.updatePredictions();
+            } catch (error) {
+                console.error('Error updating insights/predictions:', error);
+            }
+        }
     }
     
     updateInsights() {
         const container = document.getElementById('insights-container');
         if (!container) return;
         
+        // Check if data is loaded
+        if (!this.data || !this.data.games || this.data.games.length === 0 || !this.data.players || this.data.players.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">Loading insights...</p>';
+            return;
+        }
+        
         const insights = [];
         const dataToUse = this.filteredData || this.data;
         
         // Insight 1: Most improved player
         const playerImprovements = [];
-        this.data.players.forEach(player => {
+        (this.data.players || []).forEach(player => {
             const playerGames = dataToUse.games.filter(g => g.user === player);
             if (playerGames.length < 10) return;
             
@@ -1049,7 +1061,7 @@ class MaptapDashboard {
         
         // Insight 2: Most consistent player
         const playerConsistency = [];
-        this.data.players.forEach(player => {
+        (this.data.players || []).forEach(player => {
             const playerGames = dataToUse.games.filter(g => g.user === player);
             if (playerGames.length < 10) return;
             
@@ -1133,11 +1145,17 @@ class MaptapDashboard {
         const container = document.getElementById('predictions-container');
         if (!container) return;
         
+        // Check if data is loaded
+        if (!this.data || !this.data.games || this.data.games.length === 0 || !this.data.players || this.data.players.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">Loading predictions...</p>';
+            return;
+        }
+        
         const predictions = [];
         const dataToUse = this.filteredData || this.data;
         
         // Prediction 1: Next score prediction for each player
-        this.data.players.forEach(player => {
+        (this.data.players || []).forEach(player => {
             const playerGames = dataToUse.games.filter(g => g.user === player);
             if (playerGames.length < 5) return;
             
