@@ -11,10 +11,16 @@ class MaptapDashboard {
         
         this.currentSection = 'overview';
         this.currentFilters = {
-            player: '',
+            players: [], // Array for multi-select
             date: '',
+            dateRangeStart: '',
+            dateRangeEnd: '',
+            scoreMin: '',
+            scoreMax: '',
+            searchQuery: '',
             sort: 'totalScore'
         };
+        this.filterPresets = this.loadFilterPresets();
         
         this.charts = {};
         this.comparisonData = null; // Store comparison data
@@ -57,14 +63,46 @@ class MaptapDashboard {
             this.closeFilters();
         });
         
-        // Filters
-        document.getElementById('player-filter').addEventListener('change', (e) => {
-            this.currentFilters.player = e.target.value;
+        // Enhanced Filters
+        // Player search (fuzzy matching)
+        document.getElementById('player-search').addEventListener('input', (e) => {
+            this.currentFilters.searchQuery = e.target.value.toLowerCase();
+            this.filterPlayerOptions();
             this.applyFilters();
         });
         
+        // Multi-select player filter
+        document.getElementById('player-filter').addEventListener('change', (e) => {
+            const selected = Array.from(e.target.selectedOptions).map(opt => opt.value).filter(v => v);
+            this.currentFilters.players = selected;
+            this.applyFilters();
+        });
+        
+        // Date range picker
+        document.getElementById('date-range-start').addEventListener('change', (e) => {
+            this.currentFilters.dateRangeStart = e.target.value;
+            this.currentFilters.date = ''; // Clear quick date when using range
+            document.getElementById('date-filter').value = '';
+            this.applyFilters();
+        });
+        
+        document.getElementById('date-range-end').addEventListener('change', (e) => {
+            this.currentFilters.dateRangeEnd = e.target.value;
+            this.currentFilters.date = ''; // Clear quick date when using range
+            document.getElementById('date-filter').value = '';
+            this.applyFilters();
+        });
+        
+        // Quick date filter
         document.getElementById('date-filter').addEventListener('change', (e) => {
             this.currentFilters.date = e.target.value;
+            // Clear date range when using quick date
+            if (e.target.value) {
+                this.currentFilters.dateRangeStart = '';
+                this.currentFilters.dateRangeEnd = '';
+                document.getElementById('date-range-start').value = '';
+                document.getElementById('date-range-end').value = '';
+            }
             
             // Update URL hash if we're on leaderboard section
             if (this.currentSection === 'leaderboard') {
@@ -79,10 +117,39 @@ class MaptapDashboard {
             this.applyFilters();
         });
         
+        // Score range filter
+        document.getElementById('score-range-min').addEventListener('input', (e) => {
+            this.currentFilters.scoreMin = e.target.value ? parseInt(e.target.value) : '';
+            this.applyFilters();
+        });
+        
+        document.getElementById('score-range-max').addEventListener('input', (e) => {
+            this.currentFilters.scoreMax = e.target.value ? parseInt(e.target.value) : '';
+            this.applyFilters();
+        });
+        
+        // Sort filter
         document.getElementById('sort-filter').addEventListener('change', (e) => {
             this.currentFilters.sort = e.target.value;
             this.updateLeaderboardSortIndicator();
             this.applyFilters();
+        });
+        
+        // Clear filters button
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            this.clearAllFilters();
+        });
+        
+        // Save filter preset
+        document.getElementById('save-filter-preset').addEventListener('click', () => {
+            this.saveFilterPreset();
+        });
+        
+        // Load filter preset
+        document.getElementById('filter-presets').addEventListener('change', (e) => {
+            if (e.target.value) {
+                this.loadFilterPreset(e.target.value);
+            }
         });
         
         // Raw data controls
@@ -280,6 +347,9 @@ class MaptapDashboard {
             playerFilter.appendChild(option);
         });
         
+        // Update filter presets dropdown
+        this.updateFilterPresetsDropdown();
+        
         // Populate dates (remove duplicates and sort)
         console.log('Raw dates from API:', this.data.dates);
         const uniqueDates = [...new Set(this.data.dates)].sort().reverse(); // Most recent first
@@ -305,14 +375,44 @@ class MaptapDashboard {
         // Filter the data based on current filters
         let filteredGames = [...this.data.games];
         
-        // Apply player filter
-        if (this.currentFilters.player) {
-            filteredGames = filteredGames.filter(game => game.user.toLowerCase().trim() === this.currentFilters.player.toLowerCase().trim());
+        // Apply multi-select player filter
+        if (this.currentFilters.players && this.currentFilters.players.length > 0) {
+            const playerSet = new Set(this.currentFilters.players.map(p => p.toLowerCase().trim()));
+            filteredGames = filteredGames.filter(game => 
+                playerSet.has(game.user.toLowerCase().trim())
+            );
         }
         
-        // Apply date filter
+        // Apply date filter (quick date)
         if (this.currentFilters.date) {
             filteredGames = filteredGames.filter(game => game.date === this.currentFilters.date);
+        }
+        
+        // Apply date range filter
+        if (this.currentFilters.dateRangeStart || this.currentFilters.dateRangeEnd) {
+            filteredGames = filteredGames.filter(game => {
+                if (this.currentFilters.dateRangeStart && game.date < this.currentFilters.dateRangeStart) {
+                    return false;
+                }
+                if (this.currentFilters.dateRangeEnd && game.date > this.currentFilters.dateRangeEnd) {
+                    return false;
+                }
+                return true;
+            });
+        }
+        
+        // Apply score range filter
+        if (this.currentFilters.scoreMin !== '' || this.currentFilters.scoreMax !== '') {
+            filteredGames = filteredGames.filter(game => {
+                const score = game.total_score;
+                if (this.currentFilters.scoreMin !== '' && score < this.currentFilters.scoreMin) {
+                    return false;
+                }
+                if (this.currentFilters.scoreMax !== '' && score > this.currentFilters.scoreMax) {
+                    return false;
+                }
+                return true;
+            });
         }
         
         // Store filtered data
@@ -325,6 +425,127 @@ class MaptapDashboard {
         
         // Update current section with filtered data
         this.updateCurrentSection();
+    }
+    
+    filterPlayerOptions() {
+        const playerFilter = document.getElementById('player-filter');
+        const searchQuery = this.currentFilters.searchQuery;
+        
+        // Show/hide options based on search
+        Array.from(playerFilter.options).forEach(option => {
+            if (option.value === '') {
+                option.style.display = 'block'; // Always show "All Players"
+            } else {
+                const playerName = option.textContent.toLowerCase();
+                if (searchQuery === '' || playerName.includes(searchQuery)) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    clearAllFilters() {
+        this.currentFilters = {
+            players: [],
+            date: '',
+            dateRangeStart: '',
+            dateRangeEnd: '',
+            scoreMin: '',
+            scoreMax: '',
+            searchQuery: '',
+            sort: 'totalScore'
+        };
+        
+        // Reset UI elements
+        document.getElementById('player-search').value = '';
+        document.getElementById('player-filter').selectedIndex = 0;
+        document.getElementById('date-filter').value = '';
+        document.getElementById('date-range-start').value = '';
+        document.getElementById('date-range-end').value = '';
+        document.getElementById('score-range-min').value = '';
+        document.getElementById('score-range-max').value = '';
+        document.getElementById('sort-filter').value = 'totalScore';
+        
+        // Clear multi-select
+        Array.from(document.getElementById('player-filter').options).forEach(opt => {
+            opt.selected = false;
+        });
+        document.getElementById('player-filter').options[0].selected = true;
+        
+        this.filterPlayerOptions();
+        this.applyFilters();
+    }
+    
+    saveFilterPreset() {
+        const name = prompt('Enter a name for this filter preset:');
+        if (!name) return;
+        
+        const preset = {
+            name: name,
+            filters: { ...this.currentFilters }
+        };
+        
+        this.filterPresets.push(preset);
+        this.saveFilterPresets();
+        this.updateFilterPresetsDropdown();
+        
+        alert(`Filter preset "${name}" saved!`);
+    }
+    
+    loadFilterPreset(presetName) {
+        const preset = this.filterPresets.find(p => p.name === presetName);
+        if (!preset) return;
+        
+        this.currentFilters = { ...preset.filters };
+        
+        // Update UI elements
+        document.getElementById('player-search').value = this.currentFilters.searchQuery || '';
+        document.getElementById('date-filter').value = this.currentFilters.date || '';
+        document.getElementById('date-range-start').value = this.currentFilters.dateRangeStart || '';
+        document.getElementById('date-range-end').value = this.currentFilters.dateRangeEnd || '';
+        document.getElementById('score-range-min').value = this.currentFilters.scoreMin || '';
+        document.getElementById('score-range-max').value = this.currentFilters.scoreMax || '';
+        document.getElementById('sort-filter').value = this.currentFilters.sort || 'totalScore';
+        
+        // Update multi-select
+        const playerFilter = document.getElementById('player-filter');
+        Array.from(playerFilter.options).forEach(opt => {
+            opt.selected = this.currentFilters.players.includes(opt.value);
+        });
+        
+        this.filterPlayerOptions();
+        this.applyFilters();
+    }
+    
+    updateFilterPresetsDropdown() {
+        const presetsSelect = document.getElementById('filter-presets');
+        presetsSelect.innerHTML = '<option value="">Load Preset...</option>';
+        
+        this.filterPresets.forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.name;
+            option.textContent = preset.name;
+            presetsSelect.appendChild(option);
+        });
+    }
+    
+    loadFilterPresets() {
+        try {
+            const stored = localStorage.getItem('maptapdat_filter_presets');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    saveFilterPresets() {
+        try {
+            localStorage.setItem('maptapdat_filter_presets', JSON.stringify(this.filterPresets));
+        } catch (e) {
+            console.error('Failed to save filter presets:', e);
+        }
     }
     
     showSection(sectionName) {

@@ -70,16 +70,37 @@
                 </div>
                 <div class="filters">
                     <div class="filter-group">
-                        <label for="player-filter">Player:</label>
-                        <select id="player-filter">
-                            <option value="">All Players</option>
-                        </select>
+                        <label for="player-search">Search Players:</label>
+                        <input type="text" id="player-search" placeholder="Type to search players..." class="search-input">
                     </div>
                     <div class="filter-group">
-                        <label for="date-filter">Date:</label>
+                        <label for="player-filter">Player:</label>
+                        <select id="player-filter" multiple size="5" class="multi-select">
+                            <option value="">All Players</option>
+                        </select>
+                        <small class="filter-hint">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-range-start">Date Range:</label>
+                        <div class="date-range-group">
+                            <input type="date" id="date-range-start" class="date-input">
+                            <span>to</span>
+                            <input type="date" id="date-range-end" class="date-input">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-filter">Quick Date:</label>
                         <select id="date-filter">
                             <option value="">All Dates</option>
                         </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="score-range-min">Score Range:</label>
+                        <div class="score-range-group">
+                            <input type="number" id="score-range-min" placeholder="Min" min="0" max="1000" class="score-input">
+                            <span>to</span>
+                            <input type="number" id="score-range-max" placeholder="Max" min="0" max="1000" class="score-input">
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label for="sort-filter">Sort by:</label>
@@ -88,6 +109,13 @@
                             <option value="totalScore">Total Score</option>
                             <option value="perfectScores">Perfect Scores</option>
                             <option value="gamesPlayed">Games Played</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button id="clear-filters" class="btn btn-secondary">Clear All</button>
+                        <button id="save-filter-preset" class="btn btn-secondary">Save Preset</button>
+                        <select id="filter-presets" class="filter-presets">
+                            <option value="">Load Preset...</option>
                         </select>
                     </div>
                 </div>
