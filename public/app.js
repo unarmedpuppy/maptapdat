@@ -875,6 +875,23 @@ class MaptapDashboard {
         // Update URL hash
         window.location.hash = sectionName;
         
+        // Hide profile nav item unless we're viewing a profile
+        const profileNavItem = document.getElementById('profile-nav-item');
+        if (profileNavItem) {
+            if (sectionName === 'player-profile') {
+                profileNavItem.classList.remove('hidden');
+            } else {
+                profileNavItem.classList.add('hidden');
+                // Clear profile content if switching away from profile
+                if (this.currentSection === 'player-profile') {
+                    const profileContent = document.getElementById('profile-content');
+                    if (profileContent) {
+                        profileContent.innerHTML = '';
+                    }
+                }
+            }
+        }
+        
         // Update navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -888,7 +905,10 @@ class MaptapDashboard {
         document.querySelectorAll('.section').forEach(section => {
             section.classList.remove('active');
         });
-        document.getElementById(sectionName).classList.add('active');
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
         
         this.currentSection = sectionName;
         
