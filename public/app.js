@@ -1175,7 +1175,20 @@ class MaptapDashboard {
             const sumXY = x.reduce((sum, xi, i) => sum + xi * scores[i], 0);
             const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
             
-            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const denominator = (n * sumXX - sumX * sumX);
+            if (Math.abs(denominator) < 0.0001) {
+                // Use simple average if denominator is too small
+                const avgScore = Math.round(sumY / n);
+                predictions.push({
+                    player: player,
+                    predictedScore: avgScore,
+                    confidence: 'medium',
+                    trend: 'stable'
+                });
+                return;
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / denominator;
             const intercept = (sumY - slope * sumX) / n;
             
             const predictedScore = Math.round(slope * n + intercept);
