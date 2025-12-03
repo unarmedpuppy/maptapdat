@@ -516,7 +516,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Quick Wins
 
 ### 18. Last Updated Timestamp
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 30 minutes
@@ -527,8 +527,8 @@ Create dedicated profile pages for each player with detailed stats, records, and
 3. Update on data refresh
 
 #### Acceptance Criteria
-- [ ] Timestamp displays correctly
-- [ ] Updates on refresh
+- [x] Timestamp displays correctly
+- [x] Updates on refresh
 
 ---
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 16
+- **Completed:** 17
 - **In Progress:** 0
-- **Unclaimed:** 9
+- **Unclaimed:** 8
 - **Blocked:** 0
 
 ---
