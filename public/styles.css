@@ -2140,6 +2140,183 @@ select:focus {
     }
 }
 
+/* Skeleton Loading States */
+.skeleton-loading {
+    width: 100%;
+    padding: 2rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-chart {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(90deg, 
+        var(--bg-secondary) 0%, 
+        var(--bg-tertiary) 50%, 
+        var(--bg-secondary) 100%);
+    background-size: 200% 100%;
+    border: 2px solid var(--border-color);
+    animation: shimmer 2s infinite;
+}
+
+.skeleton-text {
+    height: 20px;
+    background: linear-gradient(90deg, 
+        var(--bg-secondary) 0%, 
+        var(--bg-tertiary) 50%, 
+        var(--bg-secondary) 100%);
+    background-size: 200% 100%;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    animation: shimmer 2s infinite;
+}
+
+.skeleton-text:nth-child(2) {
+    width: 80%;
+}
+
+.skeleton-text:nth-child(3) {
+    width: 60%;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-state-message {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* Tooltips */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.95);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: var(--shadow-md);
+    max-width: 250px;
+    word-wrap: break-word;
+}
+
+.has-tooltip {
+    cursor: help;
+    position: relative;
+}
+
+/* Error Messages */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 0, 193, 0.1);
+    border: 2px solid var(--error);
+    color: var(--text-primary);
+    margin: 1rem;
+    border-radius: 4px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.error-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.error-text {
+    flex: 1;
+    font-weight: bold;
+}
+
+.error-close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.error-close:hover {
+    color: var(--error);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Chart Improvements */
+.chart-container {
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Loading Spinner Enhancement */
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--bg-secondary);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Player Profile Section */
 .profile-header {
     display: flex;

@@ -1881,6 +1881,9 @@ class MaptapDashboard {
                 label = 'Total Score';
         }
         
+        // Enhanced chart configuration with animations
+        const chartColors = this.getChartColors();
+        
         this.charts.leaderboard = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -1888,33 +1891,81 @@ class MaptapDashboard {
                 datasets: [{
                     label: label,
                     data: data,
-                    backgroundColor: '#ff00c1',
-                    borderColor: '#9600ff',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    backgroundColor: chartColors.map(c => c.backgroundColor),
+                    borderColor: chartColors.map(c => c.borderColor),
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                aspectRatio: 2,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
                 plugins: {
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return `${label}: ${context.parsed.y}`;
+                            }
+                        }
                     }
                 },
+                aspectRatio: 2,
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            }
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 0
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
@@ -3628,6 +3679,144 @@ class MaptapDashboard {
             prompt('Copy this link:', text);
         }
         document.body.removeChild(textArea);
+    }
+    
+    // Enhanced chart color generation
+    getChartColors(count = 10) {
+        const colors = [
+            { backgroundColor: 'rgba(255, 0, 193, 0.8)', borderColor: '#ff00c1' },
+            { backgroundColor: 'rgba(150, 0, 255, 0.8)', borderColor: '#9600ff' },
+            { backgroundColor: 'rgba(0, 255, 249, 0.8)', borderColor: '#00fff9' },
+            { backgroundColor: 'rgba(0, 184, 255, 0.8)', borderColor: '#00b8ff' },
+            { backgroundColor: 'rgba(73, 0, 255, 0.8)', borderColor: '#4900ff' },
+            { backgroundColor: 'rgba(255, 0, 193, 0.6)', borderColor: '#ff00c1' },
+            { backgroundColor: 'rgba(150, 0, 255, 0.6)', borderColor: '#9600ff' },
+            { backgroundColor: 'rgba(0, 255, 249, 0.6)', borderColor: '#00fff9' },
+            { backgroundColor: 'rgba(0, 184, 255, 0.6)', borderColor: '#00b8ff' },
+            { backgroundColor: 'rgba(73, 0, 255, 0.6)', borderColor: '#4900ff' }
+        ];
+        
+        // Repeat colors if needed
+        const result = [];
+        for (let i = 0; i < count; i++) {
+            result.push(colors[i % colors.length]);
+        }
+        return result;
+    }
+    
+    // Show skeleton loading state
+    showSkeletonLoading(elementId, type = 'chart') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const skeleton = document.createElement('div');
+        skeleton.className = `skeleton-loading skeleton-${type}`;
+        skeleton.innerHTML = type === 'chart' 
+            ? '<div class="skeleton-chart"></div>'
+            : '<div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text"></div>';
+        
+        element.innerHTML = '';
+        element.appendChild(skeleton);
+    }
+    
+    // Show empty state
+    showEmptyState(elementId, message, icon = '📊') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <div class="empty-state-icon">${icon}</div>
+            <div class="empty-state-message">${message}</div>
+        `;
+        
+        element.innerHTML = '';
+        element.appendChild(emptyState);
+    }
+    
+    // Create tooltip element
+    createTooltip(text, position = 'top') {
+        const tooltip = document.createElement('div');
+        tooltip.className = `tooltip tooltip-${position}`;
+        tooltip.textContent = text;
+        tooltip.setAttribute('role', 'tooltip');
+        return tooltip;
+    }
+    
+    // Add tooltip to element
+    addTooltip(element, text, position = 'top') {
+        if (!element) return;
+        
+        element.setAttribute('data-tooltip', text);
+        element.setAttribute('aria-label', text);
+        element.classList.add('has-tooltip');
+        
+        element.addEventListener('mouseenter', (e) => {
+            const tooltip = this.createTooltip(text, position);
+            document.body.appendChild(tooltip);
+            
+            const rect = element.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            let top, left;
+            switch(position) {
+                case 'top':
+                    top = rect.top - tooltipRect.height - 8;
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    break;
+                case 'bottom':
+                    top = rect.bottom + 8;
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    break;
+                case 'left':
+                    top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                    left = rect.left - tooltipRect.width - 8;
+                    break;
+                case 'right':
+                    top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                    left = rect.right + 8;
+                    break;
+                default:
+                    top = rect.top - tooltipRect.height - 8;
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            }
+            
+            tooltip.style.top = `${top + window.scrollY}px`;
+            tooltip.style.left = `${left + window.scrollX}px`;
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            const tooltip = document.querySelector('.tooltip');
+            if (tooltip) tooltip.remove();
+        });
+    }
+    
+    // Show error message
+    showError(message, elementId = null) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <div class="error-icon">⚠️</div>
+            <div class="error-text">${message}</div>
+            <button class="error-close" onclick="this.parentElement.remove()">×</button>
+        `;
+        
+        if (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.appendChild(errorDiv);
+            }
+        } else {
+            document.body.insertBefore(errorDiv, document.body.firstChild);
+        }
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (errorDiv.parentElement) {
+                errorDiv.remove();
+            }
+        }, 5000);
     }
 }
 

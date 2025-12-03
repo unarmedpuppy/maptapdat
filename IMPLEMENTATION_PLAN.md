@@ -395,7 +395,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ---
 
 ### 12. Predictions and Insights
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 4-5 hours
@@ -407,9 +407,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 4. Display predictions/insights
 
 #### Acceptance Criteria
-- [ ] Predictions reasonable
-- [ ] Insights helpful
-- [ ] Recommendations relevant
+- [x] Predictions reasonable
+- [x] Insights helpful
+- [x] Recommendations relevant
 
 ---
 
@@ -473,8 +473,8 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ---
 
 ### 16. UI/UX Polish
-**Status:** 🔵 Unclaimed  
-**Claimed By:** _  
+**Status:** 🟡 In Progress  
+**Claimed By:** Composer AI  
 **Priority:** Medium  
 **Estimated Effort:** 3-4 hours
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 11
+- **Completed:** 12
 - **In Progress:** 0
-- **Unclaimed:** 14
+- **Unclaimed:** 13
 - **Blocked:** 0
 
 ---
