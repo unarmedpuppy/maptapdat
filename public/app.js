@@ -38,6 +38,19 @@ class MaptapDashboard {
         // Debounce timer
         this.debounceTimer = null;
         
+        // Mobile swipe tracking
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.swipeThreshold = 50;
+        
+        // Pull-to-refresh state
+        this.pullToRefreshState = {
+            startY: 0,
+            currentY: 0,
+            isPulling: false,
+            threshold: 80
+        };
+        
         this.init();
     }
     
@@ -1537,11 +1550,17 @@ class MaptapDashboard {
     }
     
     createTrendsChart() {
-        const ctx = document.getElementById('trends-chart').getContext('2d');
+        const ctx = document.getElementById('trends-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
         
         if (this.charts.trends) {
             this.charts.trends.destroy();
         }
+        
+        // Adjust chart options for mobile
+        const isMobile = window.innerWidth <= 768;
         
         let labels = [];
         let datasets = [];

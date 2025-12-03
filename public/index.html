@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <script>
         // Cache buster for assets
         const cacheBuster = Date.now();
@@ -50,6 +51,7 @@
 
         <!-- Navigation -->
         <nav class="nav">
+            <div class="swipe-hint">👆 Swipe left/right to navigate</div>
             <button class="nav-item active" data-section="overview">Overview</button>
             <button class="nav-item" data-section="leaderboard">Leaderboard</button>
             <button class="nav-item" data-section="trends">Trends</button>
@@ -124,6 +126,11 @@
             </div>
         </div>
 
+        <!-- Pull-to-refresh indicator -->
+        <div id="pull-refresh-indicator" class="pull-refresh-indicator">
+            Pull to refresh
+        </div>
+        
         <!-- Main Content -->
         <main class="main">
             <!-- Overview Section -->
