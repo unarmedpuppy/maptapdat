@@ -242,6 +242,10 @@ class MaptapDashboard {
         });
         
         // Intersection Observer for lazy loading charts
+        // Initialize chartsLoaded Set if not already initialized
+        if (!this.chartsLoaded) {
+            this.chartsLoaded = new Set();
+        }
         this.setupLazyChartLoading();
         
         // Handle browser back/forward buttons
