@@ -600,9 +600,11 @@ class MaptapDashboard {
         const endDateStr = today.toISOString().split('T')[0];
         
         this.currentFilters.date = '';
-        document.getElementById('date-filter').value = '';
+        const dateFilter = document.getElementById('date-filter');
+        if (dateFilter) dateFilter.value = '';
         this.currentPeriod = 'day';
-        document.getElementById('period-selector').value = 'day';
+        const periodSelector = document.getElementById('period-selector');
+        if (periodSelector) periodSelector.value = 'day';
         
         // Update trends with date range
         this.updateTrendsWithDateRange(startDateStr, endDateStr);
