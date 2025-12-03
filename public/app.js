@@ -2894,6 +2894,30 @@ class MaptapDashboard {
         const tbody = document.querySelector('#leaderboard-table tbody');
         tbody.innerHTML = '';
         
+        // Calculate personal bests for highlighting
+        const personalBests = {};
+        if (this.data && this.data.games) {
+            const allUserGames = {};
+            this.data.games.forEach(game => {
+                const key = `${game.user}-${game.date}`;
+                if (!allUserGames[key]) {
+                    allUserGames[key] = {
+                        user: game.user,
+                        totalScore: game.total_score
+                    };
+                }
+            });
+            
+            Object.values(allUserGames).forEach(game => {
+                const user = game.user;
+                if (!personalBests[user]) {
+                    personalBests[user] = game.totalScore;
+                } else if (game.totalScore > personalBests[user]) {
+                    personalBests[user] = game.totalScore;
+                }
+            });
+        }
+        
         // Get streak data
         const streaks = this.data.analytics.streaks;
         const currentStreaksMap = {};
@@ -2915,6 +2939,15 @@ class MaptapDashboard {
             const currentStreak = currentStreaksMap[player.user] || 0;
             const longestStreak = longestStreaksMap[player.user] || 0;
             
+            // Check if this is a personal best
+            const playerPB = personalBests[player.user] || 0;
+            const isPB = player.totalScore === playerPB && playerPB > 0;
+            
+            // Add PB class to row if it's a personal best
+            if (isPB) {
+                row.classList.add('personal-best-row');
+            }
+            
             // Create streak display
             let streakDisplay = '-';
             if (currentStreak > 0) {
@@ -2923,13 +2956,19 @@ class MaptapDashboard {
                 streakDisplay = `<span style="color: var(--text-muted);">🏆 ${longestStreak}</span>`;
             }
             
+            // Add PB badge to total score if it's a personal best
+            let totalScoreDisplay = player.totalScore.toLocaleString();
+            if (isPB) {
+                totalScoreDisplay = `<span class="pb-badge" title="Personal Best!">🏆</span> ${totalScoreDisplay}`;
+            }
+            
             // Make player name clickable
             const playerNameCell = `<td><strong><a href="#" class="player-link" data-player="${player.user}">${player.user}</a></strong></td>`;
             
             row.innerHTML = `
                 <td>${index + 1}</td>
                 ${playerNameCell}
-                <td>${player.totalScore.toLocaleString()}</td>
+                <td class="${isPB ? 'pb-score' : ''}">${totalScoreDisplay}</td>
                 <td>${player.avgScore}</td>
                 <td>${player.gamesPlayed}</td>
                 <td>${player.perfectScores}</td>
