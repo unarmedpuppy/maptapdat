@@ -2214,48 +2214,85 @@ class MaptapDashboard {
                 responsive: true,
                 maintainAspectRatio: false,
                 aspectRatio: 2,
+                animation: {
+                    duration: 1200,
+                    easing: 'easeOutQuart',
+                    delay: (context) => context.dataIndex * 50
+                },
                 plugins: {
                     legend: {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
                             padding: 20,
-                            color: '#00fff9',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
                             font: {
-                                family: 'Courier New',
+                                family: 'Courier New, monospace',
                                 size: 12
                             }
                         }
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y} points`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 255, 249, 0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            lineWidth: 1
                         },
                         ticks: {
-                            color: '#00fff9'
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            }
                         }
                     },
                     x: {
                         grid: {
-                            color: 'rgba(0, 255, 249, 0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            display: false
                         },
                         ticks: {
-                            color: '#00fff9',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
                             maxRotation: 45,
-                            minRotation: 45
+                            minRotation: 0
                         }
                     }
                 },
                 interaction: {
                     intersect: false,
                     mode: 'index'
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6,
+                        borderWidth: 2
+                    },
+                    line: {
+                        borderWidth: 2
+                    }
                 }
             }
         });
@@ -2283,36 +2320,49 @@ class MaptapDashboard {
         const labels = emojiData.map(item => item.emoji);
         const data = emojiData.map(item => item.count);
         
+        const chartColors = this.getChartColors(labels.length);
+        
         this.charts.emoji = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: [
-                        '#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9',
-                        '#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9'
-                    ]
+                    backgroundColor: chartColors.map(c => c.backgroundColor),
+                    borderColor: chartColors.map(c => c.borderColor),
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 aspectRatio: 1,
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            padding: 10,
+                            padding: 15,
                             usePointStyle: true,
                             font: {
-                                size: 10,
-                                family: 'Courier New'
+                                size: 11,
+                                family: 'Courier New, monospace'
                             },
-                            color: '#00ff00'
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                         }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
                         callbacks: {
                             label: function(context) {
                                 const emoji = context.label;
@@ -2345,6 +2395,8 @@ class MaptapDashboard {
         const labels = streaksData.map(item => item.user);
         const data = streaksData.map(item => item.maxStreak);
         
+        const chartColors = this.getChartColors(labels.length);
+        
         this.charts.streaks = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -2352,15 +2404,46 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Max Streak (Days)',
                     data: data,
-                    backgroundColor: '#ff00c1',
-                    borderColor: '#9600ff',
+                    backgroundColor: chartColors.map(c => c.backgroundColor),
+                    borderColor: chartColors.map(c => c.borderColor),
                     borderWidth: 2,
-                    borderRadius: 4
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return `Max Streak: ${context.parsed.y} days`;
+                            }
+                        }
+                    }
+                },
                 aspectRatio: 1.5,
                 plugins: {
                     legend: {
@@ -2485,6 +2568,8 @@ class MaptapDashboard {
         const labels = leadersData.map(item => item.user);
         const data = leadersData.map(item => item.perfectScores);
         
+        const chartColors = this.getChartColors(labels.length);
+        
         this.charts.perfectLeaders = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -2492,33 +2577,73 @@ class MaptapDashboard {
                 datasets: [{
                     label: 'Perfect Scores',
                     data: data,
-                    backgroundColor: '#9600ff',
-                    borderColor: '#4900ff',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    backgroundColor: chartColors.map(c => c.backgroundColor),
+                    borderColor: chartColors.map(c => c.borderColor),
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 aspectRatio: 1.5,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return `Perfect Scores: ${context.parsed.y}`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
+                            stepSize: 1
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 0
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
