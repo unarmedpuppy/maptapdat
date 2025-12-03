@@ -231,10 +231,30 @@
 
             <!-- Trends Section -->
             <section id="trends" class="section">
-                <h2>Score Trends</h2>
+                <div class="section-header">
+                    <h2>Score Trends</h2>
+                    <div class="trends-controls">
+                        <select id="period-selector" class="period-selector">
+                            <option value="day">Daily</option>
+                            <option value="week">Weekly</option>
+                            <option value="month">Monthly</option>
+                            <option value="quarter">Quarterly</option>
+                            <option value="year">Yearly</option>
+                        </select>
+                        <label class="rolling-average-toggle">
+                            <input type="checkbox" id="show-rolling-average">
+                            <span>Show Rolling Averages</span>
+                        </label>
+                        <div class="quick-filters">
+                            <button class="btn btn-secondary btn-sm" id="last-7-days">Last 7 Days</button>
+                            <button class="btn btn-secondary btn-sm" id="last-30-days">Last 30 Days</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="chart-container">
                     <canvas id="trends-chart"></canvas>
                 </div>
+                <div id="period-summaries" class="period-summaries"></div>
             </section>
 
             <!-- Analytics Section -->

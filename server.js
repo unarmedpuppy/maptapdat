@@ -599,6 +599,167 @@ function calculateStreaks(gameGroups) {
     };
 }
 
+app.get('/api/aggregations', (req, res) => {
+    const { period = 'day', startDate, endDate } = req.query;
+    
+    // Helper function to get period key from date
+    function getPeriodKey(dateStr, periodType) {
+        const date = new Date(dateStr + 'T00:00:00');
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const week = getWeekNumber(date);
+        
+        switch(periodType) {
+            case 'week':
+                return `${year}-W${week.toString().padStart(2, '0')}`;
+            case 'month':
+                return `${year}-${month.toString().padStart(2, '0')}`;
+            case 'quarter':
+                const quarter = Math.floor(month / 3) + 1;
+                return `${year}-Q${quarter}`;
+            case 'year':
+                return year.toString();
+            default: // 'day'
+                return dateStr;
+        }
+    }
+    
+    // Helper function to get week number
+    function getWeekNumber(date) {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+    
+    // Filter by date range if provided
+    let filteredData = gameData;
+    if (startDate || endDate) {
+        filteredData = gameData.filter(game => {
+            if (startDate && game.date < startDate) return false;
+            if (endDate && game.date > endDate) return false;
+            return true;
+        });
+    }
+    
+    // Group games by user-date to get unique games
+    const gameGroups = {};
+    filteredData.forEach(game => {
+        const key = `${game.user}-${game.date}`;
+        if (!gameGroups[key]) {
+            gameGroups[key] = {
+                user: game.user,
+                date: game.date,
+                totalScore: game.total_score,
+                periodKey: getPeriodKey(game.date, period)
+            };
+        }
+    });
+    
+    // Group by period and user
+    const periodData = {};
+    Object.values(gameGroups).forEach(game => {
+        const key = `${game.periodKey}-${game.user}`;
+        if (!periodData[key]) {
+            periodData[key] = {
+                period: game.periodKey,
+                user: game.user,
+                totalScore: 0,
+                gamesPlayed: 0,
+                dates: []
+            };
+        }
+        periodData[key].totalScore += game.totalScore;
+        periodData[key].gamesPlayed++;
+        periodData[key].dates.push(game.date);
+    });
+    
+    // Calculate rolling averages (7-day and 30-day)
+    const rollingAverages = calculateRollingAverages(gameGroups, period === 'day');
+    
+    // Convert to array and sort by period
+    const aggregatedData = Object.values(periodData).sort((a, b) => {
+        return a.period.localeCompare(b.period);
+    });
+    
+    res.json({
+        period: period,
+        aggregations: aggregatedData,
+        rollingAverages: rollingAverages
+    });
+});
+
+// Helper function to calculate rolling averages
+function calculateRollingAverages(gameGroups, isDaily) {
+    if (!isDaily) {
+        return { sevenDay: [], thirtyDay: [] };
+    }
+    
+    // Convert to array and sort by date
+    const games = Object.values(gameGroups)
+        .map(g => ({ date: g.date, totalScore: g.totalScore }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Get unique dates
+    const uniqueDates = [...new Set(games.map(g => g.date))].sort();
+    
+    // Calculate daily totals
+    const dailyTotals = {};
+    games.forEach(game => {
+        if (!dailyTotals[game.date]) {
+            dailyTotals[game.date] = { totalScore: 0, count: 0 };
+        }
+        dailyTotals[game.date].totalScore += game.totalScore;
+        dailyTotals[game.date].count++;
+    });
+    
+    // Calculate rolling averages
+    const sevenDay = [];
+    const thirtyDay = [];
+    
+    for (let i = 0; i < uniqueDates.length; i++) {
+        const currentDate = uniqueDates[i];
+        const date = new Date(currentDate + 'T00:00:00');
+        
+        // 7-day rolling average
+        if (i >= 6) {
+            let sum = 0;
+            let count = 0;
+            for (let j = i - 6; j <= i; j++) {
+                const dayData = dailyTotals[uniqueDates[j]];
+                if (dayData) {
+                    sum += dayData.totalScore / dayData.count; // Average score for that day
+                    count++;
+                }
+            }
+            sevenDay.push({
+                date: currentDate,
+                avgScore: Math.round(sum / count)
+            });
+        }
+        
+        // 30-day rolling average
+        if (i >= 29) {
+            let sum = 0;
+            let count = 0;
+            for (let j = i - 29; j <= i; j++) {
+                const dayData = dailyTotals[uniqueDates[j]];
+                if (dayData) {
+                    sum += dayData.totalScore / dayData.count;
+                    count++;
+                }
+            }
+            thirtyDay.push({
+                date: currentDate,
+                avgScore: Math.round(sum / count)
+            });
+        }
+    }
+    
+    return { sevenDay, thirtyDay };
+}
+
 // Start server
 loadCSVData().then(() => {
     app.listen(PORT, () => {

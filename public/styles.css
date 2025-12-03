@@ -1492,6 +1492,92 @@ select:focus {
     }
 }
 
+/* Trends Controls */
+.trends-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.period-selector {
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.rolling-average-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.rolling-average-toggle input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+}
+
+.quick-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+.period-summaries {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.period-summary-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    text-align: center;
+}
+
+.period-summary-card .period-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.period-summary-card .period-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+    margin-bottom: 0.25rem;
+}
+
+.period-summary-card .period-details {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .trends-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .period-summaries {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Comparison Modal */
 .modal {
     position: fixed;

@@ -19,6 +19,8 @@ class MaptapDashboard {
         this.charts = {};
         this.comparisonData = null; // Store comparison data
         this.comparingPlayers = []; // Array of player names being compared
+        this.currentPeriod = 'day'; // Current time period for trends
+        this.showRollingAverage = false; // Toggle for rolling averages
         
         this.init();
     }
@@ -145,6 +147,42 @@ class MaptapDashboard {
         document.getElementById('clear-comparison').addEventListener('click', () => {
             this.clearComparison();
         });
+        
+        // Time-based aggregation event listeners
+        document.getElementById('period-selector').addEventListener('change', (e) => {
+            this.currentPeriod = e.target.value;
+            this.updateTrends();
+        });
+        
+        document.getElementById('show-rolling-average').addEventListener('change', (e) => {
+            this.showRollingAverage = e.target.checked;
+            this.createTrendsChart();
+        });
+        
+        document.getElementById('last-7-days').addEventListener('click', () => {
+            this.setDateRange(7);
+        });
+        
+        document.getElementById('last-30-days').addEventListener('click', () => {
+            this.setDateRange(30);
+        });
+    }
+    
+    setDateRange(days) {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - days);
+        
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = today.toISOString().split('T')[0];
+        
+        this.currentFilters.date = '';
+        document.getElementById('date-filter').value = '';
+        this.currentPeriod = 'day';
+        document.getElementById('period-selector').value = 'day';
+        
+        // Update trends with date range
+        this.updateTrendsWithDateRange(startDateStr, endDateStr);
     }
     
     async loadData() {
@@ -687,13 +725,60 @@ class MaptapDashboard {
     }
     
     async updateTrends() {
-        // Use filtered data if available, otherwise use all data
-        const dataToUse = this.filteredData || this.data;
-        
-        // Calculate trends from filtered data
-        const trends = this.calculateTrends(dataToUse.games);
-        this.data.trends = trends;
-        this.createTrendsChart();
+        // If period is 'day', use existing logic
+        if (this.currentPeriod === 'day') {
+            const dataToUse = this.filteredData || this.data;
+            const trends = this.calculateTrends(dataToUse.games);
+            this.data.trends = trends;
+            
+            // Load rolling averages if checkbox is checked
+            if (this.showRollingAverage) {
+                try {
+                    const response = await fetch('/api/aggregations?period=day');
+                    if (response.ok) {
+                        const aggregationData = await response.json();
+                        this.data.aggregations = aggregationData;
+                    }
+                } catch (error) {
+                    console.error('Error loading rolling averages:', error);
+                }
+            } else {
+                this.data.aggregations = null;
+            }
+            
+            this.createTrendsChart();
+        } else {
+            // Fetch aggregated data for other periods
+            await this.updateTrendsWithAggregation();
+        }
+    }
+    
+    async updateTrendsWithAggregation() {
+        try {
+            const response = await fetch(`/api/aggregations?period=${this.currentPeriod}`);
+            if (!response.ok) throw new Error('Failed to load aggregations');
+            
+            const aggregationData = await response.json();
+            this.data.aggregations = aggregationData;
+            this.createTrendsChart();
+            this.renderPeriodSummaries(aggregationData.aggregations);
+        } catch (error) {
+            console.error('Error loading aggregations:', error);
+        }
+    }
+    
+    async updateTrendsWithDateRange(startDate, endDate) {
+        try {
+            const response = await fetch(`/api/aggregations?period=${this.currentPeriod}&startDate=${startDate}&endDate=${endDate}`);
+            if (!response.ok) throw new Error('Failed to load aggregations');
+            
+            const aggregationData = await response.json();
+            this.data.aggregations = aggregationData;
+            this.createTrendsChart();
+            this.renderPeriodSummaries(aggregationData.aggregations);
+        } catch (error) {
+            console.error('Error loading aggregations:', error);
+        }
     }
     
     calculateTrends(games) {
@@ -719,6 +804,45 @@ class MaptapDashboard {
             
         console.log('Calculated trends:', trends);
         return trends;
+    }
+    
+    renderPeriodSummaries(aggregations) {
+        const container = document.getElementById('period-summaries');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // Group by period and calculate totals
+        const periodTotals = {};
+        aggregations.forEach(agg => {
+            if (!periodTotals[agg.period]) {
+                periodTotals[agg.period] = {
+                    period: agg.period,
+                    totalScore: 0,
+                    totalGames: 0,
+                    players: new Set()
+                };
+            }
+            periodTotals[agg.period].totalScore += agg.totalScore;
+            periodTotals[agg.period].totalGames += agg.gamesPlayed;
+            periodTotals[agg.period].players.add(agg.user);
+        });
+        
+        // Create summary cards
+        Object.values(periodTotals).forEach(period => {
+            const card = document.createElement('div');
+            card.className = 'period-summary-card';
+            const avgScore = Math.round(period.totalScore / period.totalGames);
+            
+            card.innerHTML = `
+                <div class="period-label">${period.period}</div>
+                <div class="period-value">${avgScore}</div>
+                <div class="period-details">Avg Score</div>
+                <div class="period-details">${period.totalGames} games • ${period.players.size} players</div>
+            `;
+            
+            container.appendChild(card);
+        });
     }
     
     updateAnalytics() {
@@ -856,45 +980,130 @@ class MaptapDashboard {
             this.charts.trends.destroy();
         }
         
-        // Check if trends data exists
-        if (!this.data.trends || this.data.trends.length === 0) {
-            console.warn('No trends data available');
+        let labels = [];
+        let datasets = [];
+        const colors = ['#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9', '#ff00c1', '#9600ff'];
+        
+        // Handle period aggregation vs daily trends
+        if (this.currentPeriod === 'day' && this.data.trends && this.data.trends.length > 0) {
+            // Daily trends - existing logic
+            const playerTrends = {};
+            this.data.trends.forEach(trend => {
+                if (!playerTrends[trend.user]) {
+                    playerTrends[trend.user] = [];
+                }
+                playerTrends[trend.user].push(trend);
+            });
+            
+            labels = [...new Set(this.data.trends.map(t => t.date))].sort();
+            
+            Object.entries(playerTrends).forEach(([player, trends], index) => {
+                const data = labels.map(date => {
+                    const trend = trends.find(t => t.date === date);
+                    return trend ? trend.totalScore : null;
+                });
+                
+                datasets.push({
+                    label: player,
+                    data: data,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 3
+                });
+            });
+            
+            // Add rolling averages if enabled and period is day
+            if (this.showRollingAverage && this.data.aggregations?.rollingAverages) {
+                const rolling = this.data.aggregations.rollingAverages;
+                
+                if (rolling.sevenDay && rolling.sevenDay.length > 0) {
+                    const sevenDayLabels = rolling.sevenDay.map(r => r.date);
+                    const sevenDayData = labels.map(date => {
+                        const rolling = rolling.sevenDay.find(r => r.date === date);
+                        return rolling ? rolling.avgScore : null;
+                    });
+                    
+                    datasets.push({
+                        label: '7-Day Rolling Avg',
+                        data: sevenDayData,
+                        borderColor: '#00fff9',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: false
+                    });
+                }
+                
+                if (rolling.thirtyDay && rolling.thirtyDay.length > 0) {
+                    const thirtyDayData = labels.map(date => {
+                        const rolling = rolling.thirtyDay.find(r => r.date === date);
+                        return rolling ? rolling.avgScore : null;
+                    });
+                    
+                    datasets.push({
+                        label: '30-Day Rolling Avg',
+                        data: thirtyDayData,
+                        borderColor: '#00b8ff',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: false
+                    });
+                }
+            }
+        } else if (this.data.aggregations && this.data.aggregations.aggregations) {
+            // Period aggregation
+            const aggregations = this.data.aggregations.aggregations;
+            const periods = [...new Set(aggregations.map(a => a.period))].sort();
+            labels = periods;
+            
+            // Group by player
+            const playerAggregations = {};
+            aggregations.forEach(agg => {
+                if (!playerAggregations[agg.user]) {
+                    playerAggregations[agg.user] = {};
+                }
+                playerAggregations[agg.user][agg.period] = agg;
+            });
+            
+            Object.entries(playerAggregations).forEach(([player, periodMap], index) => {
+                const data = periods.map(period => {
+                    const agg = periodMap[period];
+                    return agg ? Math.round(agg.totalScore / agg.gamesPlayed) : null;
+                });
+                
+                datasets.push({
+                    label: player,
+                    data: data,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4
+                });
+            });
+        } else {
+            console.warn('No trends or aggregation data available');
             return;
         }
         
-        // Group trends by player
-        const playerTrends = {};
-        this.data.trends.forEach(trend => {
-            if (!playerTrends[trend.user]) {
-                playerTrends[trend.user] = [];
+        // Format labels based on period
+        const formattedLabels = labels.map(label => {
+            if (this.currentPeriod === 'day') {
+                const [year, month, day] = label.split('-');
+                return `${parseInt(month)}/${parseInt(day)}`;
             }
-            playerTrends[trend.user].push(trend);
-        });
-        
-        const labels = [...new Set(this.data.trends.map(t => t.date))].sort();
-        const datasets = [];
-        const colors = ['#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9', '#ff00c1', '#9600ff'];
-        
-        Object.entries(playerTrends).forEach(([player, trends], index) => {
-            const data = labels.map(date => {
-                const trend = trends.find(t => t.date === date);
-                return trend ? trend.totalScore : null;
-            });
-            
-            datasets.push({
-                label: player,
-                data: data,
-                borderColor: colors[index % colors.length],
-                backgroundColor: colors[index % colors.length] + '20',
-                tension: 0.4,
-                fill: false
-            });
+            return label;
         });
         
         this.charts.trends = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels.map(date => new Date(date).toLocaleDateString()),
+                labels: formattedLabels,
                 datasets: datasets
             },
             options: {
@@ -906,20 +1115,37 @@ class MaptapDashboard {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 20
+                            padding: 20,
+                            color: '#00fff9',
+                            font: {
+                                family: 'Courier New',
+                                size: 12
+                            }
                         }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9'
                         }
                     },
                     x: {
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9',
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     }
                 },
