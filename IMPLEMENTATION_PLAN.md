@@ -567,7 +567,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ---
 
 ### 21. Personal Best Highlighting
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 1 hour
@@ -578,8 +578,8 @@ Create dedicated profile pages for each player with detailed stats, records, and
 3. Add PB badge/indicator
 
 #### Acceptance Criteria
-- [ ] PBs highlighted
-- [ ] Badge visible
+- [x] PBs highlighted
+- [x] Badge visible
 
 ---
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 19
+- **Completed:** 20
 - **In Progress:** 0
-- **Unclaimed:** 6
+- **Unclaimed:** 5
 - **Blocked:** 0
 
 ---
