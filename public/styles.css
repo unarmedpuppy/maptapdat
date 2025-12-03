@@ -1094,6 +1094,31 @@ select:focus {
 .raw-data-controls {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.rows-per-page {
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+}
+
+#page-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    min-width: 80px;
+    text-align: center;
 }
 
 .raw-data-info {

@@ -28,6 +28,16 @@ class MaptapDashboard {
         this.currentPeriod = 'day'; // Current time period for trends
         this.showRollingAverage = false; // Toggle for rolling averages
         
+        // Pagination state
+        this.currentPage = 1;
+        this.rowsPerPage = 50;
+        
+        // Chart visibility tracking
+        this.chartsLoaded = new Set();
+        
+        // Debounce timer
+        this.debounceTimer = null;
+        
         this.init();
     }
     
@@ -64,11 +74,11 @@ class MaptapDashboard {
         });
         
         // Enhanced Filters
-        // Player search (fuzzy matching)
+        // Player search (fuzzy matching) - debounced
         document.getElementById('player-search').addEventListener('input', (e) => {
             this.currentFilters.searchQuery = e.target.value.toLowerCase();
             this.filterPlayerOptions();
-            this.applyFilters();
+            this.debounceApplyFilters();
         });
         
         // Multi-select player filter
@@ -117,15 +127,15 @@ class MaptapDashboard {
             this.applyFilters();
         });
         
-        // Score range filter
+        // Score range filter - debounced
         document.getElementById('score-range-min').addEventListener('input', (e) => {
             this.currentFilters.scoreMin = e.target.value ? parseInt(e.target.value) : '';
-            this.applyFilters();
+            this.debounceApplyFilters();
         });
         
         document.getElementById('score-range-max').addEventListener('input', (e) => {
             this.currentFilters.scoreMax = e.target.value ? parseInt(e.target.value) : '';
-            this.applyFilters();
+            this.debounceApplyFilters();
         });
         
         // Sort filter
@@ -194,6 +204,32 @@ class MaptapDashboard {
         document.getElementById('share-rawdata-link').addEventListener('click', () => {
             this.shareLink('rawdata');
         });
+        
+        // Pagination controls
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.updateRawDataTable();
+            }
+        });
+        
+        document.getElementById('next-page').addEventListener('click', () => {
+            const dataToUse = this.filteredData || this.data;
+            const totalPages = Math.ceil(dataToUse.games.length / this.rowsPerPage);
+            if (this.currentPage < totalPages) {
+                this.currentPage++;
+                this.updateRawDataTable();
+            }
+        });
+        
+        document.getElementById('rows-per-page').addEventListener('change', (e) => {
+            this.rowsPerPage = parseInt(e.target.value);
+            this.currentPage = 1;
+            this.updateRawDataTable();
+        });
+        
+        // Intersection Observer for lazy loading charts
+        this.setupLazyChartLoading();
         
         // Handle browser back/forward buttons
         window.addEventListener('hashchange', () => {
@@ -590,7 +626,10 @@ class MaptapDashboard {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
-        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+        const navItem = document.querySelector(`[data-section="${sectionName}"]`);
+        if (navItem) {
+            navItem.classList.add('active');
+        }
         
         // Show section
         document.querySelectorAll('.section').forEach(section => {
@@ -599,6 +638,13 @@ class MaptapDashboard {
         document.getElementById(sectionName).classList.add('active');
         
         this.currentSection = sectionName;
+        
+        // Load charts for this section if not already loaded
+        if (!this.chartsLoaded.has(sectionName)) {
+            this.chartsLoaded.add(sectionName);
+            this.loadChartsForSection(sectionName);
+        }
+        
         this.updateCurrentSection();
         
         // Scroll to top of the page instead of bottom
@@ -1219,7 +1265,12 @@ class MaptapDashboard {
         return result;
     }
     
-    async updateTrends() {
+    async     updateTrends() {
+        // Only create chart if section is visible or already loaded
+        if (this.currentSection !== 'trends' && !this.chartsLoaded.has('trends')) {
+            return;
+        }
+        
         // If period is 'day', use existing logic
         if (this.currentPeriod === 'day') {
             const dataToUse = this.filteredData || this.data;
@@ -1341,6 +1392,11 @@ class MaptapDashboard {
     }
     
     updateAnalytics() {
+        // Only create charts if section is visible or already loaded
+        if (this.currentSection !== 'analytics' && !this.chartsLoaded.has('analytics')) {
+            return;
+        }
+        
         // Use filtered data if available, otherwise use all data
         const dataToUse = this.filteredData || this.data;
         
@@ -2506,10 +2562,18 @@ class MaptapDashboard {
             return a.user.localeCompare(b.user);
         });
         
-        console.log('Raw data table - first 5 games:', sortedGames.slice(0, 5));
-        console.log('Stephen Alexander games in raw data:', sortedGames.filter(game => game.user.toLowerCase().includes('stephen')));
+        // Pagination
+        const totalPages = Math.ceil(sortedGames.length / this.rowsPerPage);
+        const startIndex = (this.currentPage - 1) * this.rowsPerPage;
+        const endIndex = startIndex + this.rowsPerPage;
+        const paginatedGames = sortedGames.slice(startIndex, endIndex);
         
-        sortedGames.forEach(game => {
+        // Update pagination info
+        document.getElementById('page-info').textContent = `Page ${this.currentPage} of ${totalPages || 1}`;
+        document.getElementById('prev-page').disabled = this.currentPage === 1;
+        document.getElementById('next-page').disabled = this.currentPage >= totalPages;
+        
+        paginatedGames.forEach(game => {
             // Convert YYYY-MM-DD to MM/DD/YYYY format without using Date objects
             const [year, month, day] = game.date.split('-');
             const displayDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
