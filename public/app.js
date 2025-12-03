@@ -1047,10 +1047,11 @@ class MaptapDashboard {
                 this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
             
             const dateRange = this.data.analytics.dateRange;
-        if (dateRange) {
-            const start = new Date(dateRange.start).toLocaleDateString();
-            const end = new Date(dateRange.end).toLocaleDateString();
-            document.getElementById('date-range').textContent = `${start} - ${end}`;
+            if (dateRange) {
+                const start = new Date(dateRange.start).toLocaleDateString();
+                const end = new Date(dateRange.end).toLocaleDateString();
+                document.getElementById('date-range').textContent = `${start} - ${end}`;
+            }
         }
         
         // Update daily winner and loser using current day's data
