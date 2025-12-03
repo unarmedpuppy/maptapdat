@@ -584,7 +584,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ---
 
 ### 22. Keyboard Shortcuts
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 1-2 hours
@@ -596,9 +596,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 4. Support arrow keys for navigation
 
 #### Acceptance Criteria
-- [ ] Shortcuts work (1-5 for sections)
-- [ ] Help modal shows shortcuts
-- [ ] Arrow keys navigate
+- [x] Shortcuts work (1-5 for sections)
+- [x] Help modal shows shortcuts
+- [x] Arrow keys navigate
 
 ---
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 20
+- **Completed:** 21
 - **In Progress:** 0
-- **Unclaimed:** 5
+- **Unclaimed:** 4
 - **Blocked:** 0
 
 ---
