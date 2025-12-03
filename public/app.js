@@ -1178,6 +1178,9 @@ class MaptapDashboard {
         
         // Render achievements
         this.renderProfileAchievements(playerData.user);
+        
+        // Add tooltips to profile stat cards
+        setTimeout(() => this.addTooltipsToStats(), 100);
     }
     
     renderProfileAchievements(playerName) {
