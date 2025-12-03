@@ -2085,3 +2085,131 @@ select:focus {
         flex-direction: column;
     }
 }
+
+/* Mobile Enhancements */
+.pull-refresh-indicator {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 1rem 2rem;
+    border-radius: 0 0 1rem 1rem;
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Increase touch target sizes on mobile */
+@media (max-width: 768px) {
+    .btn,
+    button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .btn-sm {
+        min-height: 40px;
+        padding: 0.6rem 0.9rem;
+    }
+    
+    .nav-item {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .stat-card,
+    .streak-card,
+    .period-summary-card {
+        min-height: 44px;
+    }
+    
+    /* Simplify charts on mobile */
+    .chart-container {
+        max-height: 300px;
+    }
+    
+    .chart-container canvas {
+        max-height: 300px;
+    }
+    
+    /* Optimize table scrolling on mobile */
+    .raw-data-table-container {
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+    }
+    
+    .raw-data-table {
+        font-size: 0.8rem;
+    }
+    
+    .raw-data-table th,
+    .raw-data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Larger filter inputs on mobile */
+    .search-input,
+    .date-input,
+    .score-input,
+    select {
+        min-height: 44px;
+        font-size: 1rem;
+    }
+    
+    /* Better spacing for mobile */
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    /* Swipe hint */
+    .swipe-hint {
+        display: block;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Hide swipe hint on desktop */
+.swipe-hint {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .swipe-hint {
+        display: block;
+    }
+}
+
+/* Prevent text selection during swipe */
+@media (max-width: 768px) {
+    .nav,
+    .section {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    
+    /* Allow text selection in tables and content */
+    .raw-data-table,
+    .stat-card,
+    .streak-card {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+}
