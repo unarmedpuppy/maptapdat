@@ -1259,6 +1259,9 @@ class MaptapDashboard {
             }
         }
         
+        // Update games today counter
+        this.updateGamesTodayCounter();
+        
         // Update daily winner and loser using current day's data
         this.updateDailyWinnerLoser(this.data.games);
         
@@ -1411,6 +1414,40 @@ class MaptapDashboard {
         }
         this.lastUpdatedInterval = setInterval(() => {
             this.updateLastUpdatedTimestamp();
+        }, 60000); // Update every minute
+    }
+    
+    updateGamesTodayCounter() {
+        const gamesTodayElement = document.getElementById('games-today');
+        if (!gamesTodayElement) return;
+        
+        if (!this.data || !this.data.games || this.data.games.length === 0) {
+            gamesTodayElement.textContent = '0';
+            return;
+        }
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // Count unique games for today (group by user-date)
+        const todayGames = new Set();
+        this.data.games.forEach(game => {
+            if (game.date === todayStr) {
+                const key = `${game.user}-${game.date}`;
+                todayGames.add(key);
+            }
+        });
+        
+        const count = todayGames.size;
+        gamesTodayElement.textContent = count;
+        
+        // Update every minute to catch new games
+        if (this.gamesTodayInterval) {
+            clearInterval(this.gamesTodayInterval);
+        }
+        this.gamesTodayInterval = setInterval(() => {
+            this.updateGamesTodayCounter();
         }, 60000); // Update every minute
     }
     
