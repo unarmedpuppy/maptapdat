@@ -2445,18 +2445,6 @@ class MaptapDashboard {
                     }
                 },
                 aspectRatio: 1.5,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Max Streak: ${context.parsed.y} days`;
-                            }
-                        }
-                    }
-                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -2672,25 +2660,41 @@ class MaptapDashboard {
                     label: 'Average Score',
                     data: data,
                     backgroundColor: data.map(score => {
+                        if (score >= 80) return 'rgba(0, 255, 249, 0.8)';
+                        if (score >= 60) return 'rgba(0, 184, 255, 0.8)';
+                        if (score >= 40) return 'rgba(150, 0, 255, 0.8)';
+                        return 'rgba(255, 0, 193, 0.8)';
+                    }),
+                    borderColor: data.map(score => {
                         if (score >= 80) return '#00fff9';
                         if (score >= 60) return '#00b8ff';
                         if (score >= 40) return '#9600ff';
                         return '#ff00c1';
                     }),
-                    borderColor: '#4900ff',
-                    borderWidth: 1,
-                    borderRadius: 4
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 aspectRatio: 1.5,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
                 plugins: {
                     legend: {
                         display: false
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
                         callbacks: {
                             label: function(context) {
                                 return `Avg Score: ${context.parsed.y}`;
@@ -2703,20 +2707,35 @@ class MaptapDashboard {
                         beginAtZero: true,
                         max: 100,
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            lineWidth: 1
                         },
                         ticks: {
-                            color: '#00fff9'
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            }
                         }
                     },
                     x: {
                         grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                            display: false
                         },
                         ticks: {
-                            color: '#00fff9'
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 0
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
