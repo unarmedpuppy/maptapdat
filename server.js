@@ -265,6 +265,116 @@ app.get('/api/player/:player', (req, res) => {
     res.json(stats);
 });
 
+app.get('/api/compare', (req, res) => {
+    const { players } = req.query;
+    
+    if (!players) {
+        return res.status(400).json({ error: 'players parameter required' });
+    }
+    
+    // Parse players array from query string (comma-separated)
+    const playerList = players.split(',').map(p => p.toLowerCase().trim()).filter(p => p);
+    
+    if (playerList.length < 2 || playerList.length > 3) {
+        return res.status(400).json({ error: 'Must compare 2-3 players' });
+    }
+    
+    // Get data for each player
+    const comparisonData = playerList.map(playerName => {
+        const playerData = gameData.filter(game => game.user === playerName);
+        
+        if (playerData.length === 0) {
+            return null;
+        }
+        
+        // Group by date to get unique games
+        const gamesByDate = {};
+        playerData.forEach(game => {
+            if (!gamesByDate[game.date]) {
+                gamesByDate[game.date] = {
+                    totalScore: game.total_score,
+                    perfectScores: 0,
+                    lowestScore: Infinity,
+                    highestScore: 0,
+                    locationScores: []
+                };
+            }
+            
+            gamesByDate[game.date].locationScores.push(game.location_score);
+            
+            if (game.location_score === 100) {
+                gamesByDate[game.date].perfectScores++;
+            }
+            if (game.location_score < gamesByDate[game.date].lowestScore) {
+                gamesByDate[game.date].lowestScore = game.location_score;
+            }
+            if (game.location_score > gamesByDate[game.date].highestScore) {
+                gamesByDate[game.date].highestScore = game.location_score;
+            }
+        });
+        
+        // Calculate overall statistics
+        const gameDates = Object.keys(gamesByDate).sort();
+        const totalScore = gameDates.reduce((sum, date) => sum + gamesByDate[date].totalScore, 0);
+        const totalPerfectScores = gameDates.reduce((sum, date) => sum + gamesByDate[date].perfectScores, 0);
+        const allScores = gameDates.map(date => gamesByDate[date].totalScore);
+        const allLowestScores = gameDates.map(date => gamesByDate[date].lowestScore);
+        const allHighestScores = gameDates.map(date => gamesByDate[date].highestScore);
+        
+        // Create trends data (date, score pairs)
+        const trends = gameDates.map(date => ({
+            date: date,
+            score: gamesByDate[date].totalScore
+        }));
+        
+        return {
+            user: playerName,
+            totalGames: gameDates.length,
+            totalScore: totalScore,
+            avgScore: Math.round(totalScore / gameDates.length),
+            perfectScores: totalPerfectScores,
+            lowestScore: Math.min(...allLowestScores),
+            highestScore: Math.max(...allHighestScores),
+            trends: trends,
+            gamesByDate: gamesByDate
+        };
+    }).filter(p => p !== null);
+    
+    // Calculate head-to-head records (only for 2 players)
+    let headToHead = null;
+    if (comparisonData.length === 2) {
+        const [p1, p2] = comparisonData;
+        const p1Dates = new Set(p1.trends.map(t => t.date));
+        const p2Dates = new Set(p2.trends.map(t => t.date));
+        const commonDates = [...p1Dates].filter(d => p2Dates.has(d));
+        
+        let p1Wins = 0;
+        let p2Wins = 0;
+        let ties = 0;
+        
+        commonDates.forEach(date => {
+            const p1Score = p1.gamesByDate[date].totalScore;
+            const p2Score = p2.gamesByDate[date].totalScore;
+            
+            if (p1Score > p2Score) p1Wins++;
+            else if (p2Score > p1Score) p2Wins++;
+            else ties++;
+        });
+        
+        headToHead = {
+            commonGames: commonDates.length,
+            [p1.user]: p1Wins,
+            [p2.user]: p2Wins,
+            ties: ties
+        };
+    }
+    
+    res.json({
+        players: comparisonData,
+        headToHead: headToHead
+    });
+});
+
 app.get('/api/analytics', (req, res) => {
     // Emoji frequency analysis
     const emojiCounts = {};

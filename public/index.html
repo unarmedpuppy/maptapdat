@@ -178,6 +178,7 @@
                     <div class="leaderboard-controls">
                         <button class="btn btn-secondary" id="overall-leaderboard">Overall</button>
                         <button class="btn btn-secondary" id="daily-leaderboard">Daily</button>
+                        <button class="btn btn-primary" id="compare-players-btn">Compare Players</button>
                     </div>
                 </div>
                 <div id="leaderboard-date" class="leaderboard-date hidden"></div>
@@ -202,6 +203,19 @@
                 
                 <div class="chart-container">
                     <canvas id="leaderboard-chart"></canvas>
+                </div>
+                
+                <!-- Comparison View -->
+                <div id="comparison-view" class="comparison-view hidden">
+                    <div class="comparison-header">
+                        <h3>Player Comparison</h3>
+                        <button class="btn btn-secondary" id="clear-comparison">Clear Comparison</button>
+                    </div>
+                    <div id="comparison-stats" class="comparison-stats"></div>
+                    <div id="comparison-head-to-head" class="comparison-head-to-head"></div>
+                    <div class="chart-container">
+                        <canvas id="comparison-chart"></canvas>
+                    </div>
                 </div>
             </section>
 
@@ -263,6 +277,24 @@
                 </div>
             </section>
         </main>
+
+        <!-- Comparison Modal -->
+        <div id="comparison-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Compare Players</h3>
+                    <button class="modal-close" id="comparison-modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Select 2-3 players to compare:</p>
+                    <div id="comparison-player-selectors"></div>
+                    <div class="comparison-actions">
+                        <button class="btn btn-primary" id="apply-comparison">Compare</button>
+                        <button class="btn btn-secondary" id="cancel-comparison">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Loading Overlay -->
         <div id="loading" class="loading">

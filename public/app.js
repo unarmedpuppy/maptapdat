@@ -17,6 +17,8 @@ class MaptapDashboard {
         };
         
         this.charts = {};
+        this.comparisonData = null; // Store comparison data
+        this.comparingPlayers = []; // Array of player names being compared
         
         this.init();
     }
@@ -121,6 +123,27 @@ class MaptapDashboard {
             this.updateLeaderboardSortIndicator();
             this.applyFilters();
             this.updateLeaderboard();
+        });
+        
+        // Comparison feature event listeners
+        document.getElementById('compare-players-btn').addEventListener('click', () => {
+            this.openComparisonModal();
+        });
+        
+        document.getElementById('comparison-modal-close').addEventListener('click', () => {
+            this.closeComparisonModal();
+        });
+        
+        document.getElementById('cancel-comparison').addEventListener('click', () => {
+            this.closeComparisonModal();
+        });
+        
+        document.getElementById('apply-comparison').addEventListener('click', () => {
+            this.applyComparison();
+        });
+        
+        document.getElementById('clear-comparison').addEventListener('click', () => {
+            this.clearComparison();
         });
     }
     
@@ -1163,6 +1186,280 @@ class MaptapDashboard {
     
     showLoading() {
         document.getElementById('loading').classList.remove('hidden');
+    }
+    
+    // Comparison Feature Methods
+    openComparisonModal() {
+        const modal = document.getElementById('comparison-modal');
+        const selectorsContainer = document.getElementById('comparison-player-selectors');
+        
+        // Clear previous selectors
+        selectorsContainer.innerHTML = '';
+        
+        // Create 3 player selectors
+        for (let i = 0; i < 3; i++) {
+            const selectorDiv = document.createElement('div');
+            selectorDiv.className = 'comparison-player-select';
+            
+            const label = document.createElement('label');
+            label.textContent = `Player ${i + 1}:`;
+            label.setAttribute('for', `comparison-player-${i}`);
+            
+            const select = document.createElement('select');
+            select.id = `comparison-player-${i}`;
+            select.innerHTML = '<option value="">-- Select Player --</option>';
+            
+            // Populate with players
+            this.data.players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                select.appendChild(option);
+            });
+            
+            selectorDiv.appendChild(label);
+            selectorDiv.appendChild(select);
+            selectorsContainer.appendChild(selectorDiv);
+        }
+        
+        modal.classList.remove('hidden');
+    }
+    
+    closeComparisonModal() {
+        const modal = document.getElementById('comparison-modal');
+        modal.classList.add('hidden');
+    }
+    
+    async applyComparison() {
+        const selectedPlayers = [];
+        
+        // Get selected players
+        for (let i = 0; i < 3; i++) {
+            const select = document.getElementById(`comparison-player-${i}`);
+            if (select.value) {
+                selectedPlayers.push(select.value);
+            }
+        }
+        
+        if (selectedPlayers.length < 2) {
+            alert('Please select at least 2 players to compare.');
+            return;
+        }
+        
+        if (selectedPlayers.length > 3) {
+            alert('Please select no more than 3 players.');
+            return;
+        }
+        
+        this.comparingPlayers = selectedPlayers;
+        await this.loadComparisonData();
+        this.closeComparisonModal();
+    }
+    
+    async loadComparisonData() {
+        try {
+            const playersParam = this.comparingPlayers.join(',');
+            const response = await fetch(`/api/compare?players=${encodeURIComponent(playersParam)}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to load comparison data');
+            }
+            
+            this.comparisonData = await response.json();
+            this.renderComparisonView();
+        } catch (error) {
+            console.error('Error loading comparison data:', error);
+            alert('Failed to load comparison data. Please try again.');
+        }
+    }
+    
+    renderComparisonView() {
+        const comparisonView = document.getElementById('comparison-view');
+        const statsContainer = document.getElementById('comparison-stats');
+        const headToHeadContainer = document.getElementById('comparison-head-to-head');
+        
+        // Show comparison view
+        comparisonView.classList.remove('hidden');
+        
+        // Clear previous content
+        statsContainer.innerHTML = '';
+        headToHeadContainer.innerHTML = '';
+        
+        // Render stat cards for each player
+        const playerColors = ['#ff00c1', '#9600ff', '#00b8ff'];
+        
+        this.comparisonData.players.forEach((player, index) => {
+            const statCard = document.createElement('div');
+            statCard.className = 'comparison-stat-card';
+            statCard.style.borderColor = playerColors[index];
+            
+            statCard.innerHTML = `
+                <h4 style="color: ${playerColors[index]}">${player.user}</h4>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.totalScore}</div>
+                <div class="stat-label">Total Score</div>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.avgScore}</div>
+                <div class="stat-label">Average Score</div>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.totalGames}</div>
+                <div class="stat-label">Games Played</div>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.perfectScores}</div>
+                <div class="stat-label">Perfect Scores</div>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.highestScore}</div>
+                <div class="stat-label">Highest Score</div>
+                <div class="stat-value" style="color: ${playerColors[index]}">${player.lowestScore}</div>
+                <div class="stat-label">Lowest Score</div>
+            `;
+            
+            statsContainer.appendChild(statCard);
+        });
+        
+        // Render head-to-head if comparing 2 players
+        if (this.comparisonData.headToHead && this.comparisonData.players.length === 2) {
+            const [p1, p2] = this.comparisonData.players;
+            const h2h = this.comparisonData.headToHead;
+            
+            headToHeadContainer.innerHTML = `
+                <h4>Head-to-Head Record</h4>
+                <div class="head-to-head-stats">
+                    <div class="head-to-head-stat">
+                        <div class="value" style="color: ${playerColors[0]}">${h2h[p1.user] || 0}</div>
+                        <div class="label">${p1.user} Wins</div>
+                    </div>
+                    <div class="head-to-head-stat">
+                        <div class="value">${h2h.ties || 0}</div>
+                        <div class="label">Ties</div>
+                    </div>
+                    <div class="head-to-head-stat">
+                        <div class="value" style="color: ${playerColors[1]}">${h2h[p2.user] || 0}</div>
+                        <div class="label">${p2.user} Wins</div>
+                    </div>
+                    <div class="head-to-head-stat">
+                        <div class="value">${h2h.commonGames || 0}</div>
+                        <div class="label">Common Games</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create comparison chart
+        this.createComparisonChart();
+    }
+    
+    createComparisonChart() {
+        const ctx = document.getElementById('comparison-chart').getContext('2d');
+        
+        if (this.charts.comparison) {
+            this.charts.comparison.destroy();
+        }
+        
+        const playerColors = ['#ff00c1', '#9600ff', '#00b8ff'];
+        const datasets = [];
+        
+        // Get all unique dates across all players
+        const allDates = new Set();
+        this.comparisonData.players.forEach(player => {
+            player.trends.forEach(trend => allDates.add(trend.date));
+        });
+        const sortedDates = Array.from(allDates).sort();
+        
+        // Create dataset for each player
+        this.comparisonData.players.forEach((player, index) => {
+            const scoresByDate = {};
+            player.trends.forEach(trend => {
+                scoresByDate[trend.date] = trend.score;
+            });
+            
+            const data = sortedDates.map(date => scoresByDate[date] || null);
+            
+            datasets.push({
+                label: player.user,
+                data: data,
+                borderColor: playerColors[index],
+                backgroundColor: playerColors[index] + '40',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            });
+        });
+        
+        // Format dates for display
+        const formattedDates = sortedDates.map(date => {
+            const [year, month, day] = date.split('-');
+            return `${parseInt(month)}/${parseInt(day)}`;
+        });
+        
+        this.charts.comparison = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: formattedDates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#00fff9',
+                            font: {
+                                family: 'Courier New',
+                                size: 12
+                            },
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y} points`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9',
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    }
+    
+    clearComparison() {
+        this.comparisonData = null;
+        this.comparingPlayers = [];
+        document.getElementById('comparison-view').classList.add('hidden');
+        
+        if (this.charts.comparison) {
+            this.charts.comparison.destroy();
+            this.charts.comparison = null;
+        }
     }
     
     hideLoading() {
