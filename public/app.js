@@ -117,6 +117,14 @@ class MaptapDashboard {
             this.toggleTheme();
         });
         
+        // High contrast toggle
+        document.getElementById('high-contrast-toggle').addEventListener('click', () => {
+            this.toggleHighContrast();
+        });
+        
+        // Keyboard navigation
+        this.setupKeyboardNavigation();
+        
         // Filters toggle
         document.getElementById('filters-toggle').addEventListener('click', () => {
             this.openFilters();
@@ -3981,10 +3989,12 @@ class MaptapDashboard {
     showError(message, elementId = null) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
         errorDiv.innerHTML = `
-            <div class="error-icon">⚠️</div>
+            <div class="error-icon" aria-hidden="true">⚠️</div>
             <div class="error-text">${message}</div>
-            <button class="error-close" onclick="this.parentElement.remove()">×</button>
+            <button class="error-close" aria-label="Close error message" onclick="this.parentElement.remove()">×</button>
         `;
         
         if (elementId) {
@@ -3996,6 +4006,9 @@ class MaptapDashboard {
             document.body.insertBefore(errorDiv, document.body.firstChild);
         }
         
+        // Announce to screen readers
+        this.announceToScreenReader(message);
+        
         // Auto-remove after 5 seconds
         setTimeout(() => {
             if (errorDiv.parentElement) {
@@ -4003,19 +4016,141 @@ class MaptapDashboard {
             }
         }, 5000);
     }
+    
+    // Toggle high contrast mode
+    toggleHighContrast() {
+        const html = document.documentElement;
+        const isHighContrast = html.getAttribute('data-theme') === 'high-contrast';
+        const toggle = document.getElementById('high-contrast-toggle');
+        
+        if (isHighContrast) {
+            // Restore previous theme
+            const previousTheme = localStorage.getItem('theme') || 'light';
+            html.setAttribute('data-theme', previousTheme);
+            toggle.setAttribute('aria-pressed', 'false');
+            localStorage.removeItem('highContrast');
+        } else {
+            // Save current theme and enable high contrast
+            const currentTheme = html.getAttribute('data-theme') || 'light';
+            localStorage.setItem('theme', currentTheme);
+            html.setAttribute('data-theme', 'high-contrast');
+            toggle.setAttribute('aria-pressed', 'true');
+            localStorage.setItem('highContrast', 'true');
+        }
+        
+        this.announceToScreenReader(isHighContrast ? 'High contrast mode disabled' : 'High contrast mode enabled');
+    }
+    
+    // Setup keyboard navigation
+    setupKeyboardNavigation() {
+        // Arrow key navigation for sections
+        document.addEventListener('keydown', (e) => {
+            // Skip if user is typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            // Alt + Arrow keys for section navigation
+            if (e.altKey) {
+                const sections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
+                const currentIndex = sections.indexOf(this.currentSection);
+                
+                if (e.key === 'ArrowRight' && currentIndex < sections.length - 1) {
+                    e.preventDefault();
+                    this.showSection(sections[currentIndex + 1]);
+                    window.location.hash = sections[currentIndex + 1];
+                } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                    e.preventDefault();
+                    this.showSection(sections[currentIndex - 1]);
+                    window.location.hash = sections[currentIndex - 1];
+                }
+            }
+            
+            // Escape key to close modals/filters
+            if (e.key === 'Escape') {
+                const filtersContent = document.getElementById('filters-content');
+                if (filtersContent && !filtersContent.classList.contains('hidden')) {
+                    this.closeFilters();
+                }
+                
+                const comparisonModal = document.getElementById('comparison-modal');
+                if (comparisonModal && !comparisonModal.classList.contains('hidden')) {
+                    this.closeComparisonModal();
+                }
+            }
+            
+            // Alt + T for theme toggle
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                document.getElementById('theme-toggle').click();
+            }
+            
+            // Alt + H for high contrast toggle
+            if (e.altKey && e.key === 'h') {
+                e.preventDefault();
+                document.getElementById('high-contrast-toggle').click();
+            }
+        });
+        
+        // Tab navigation improvements
+        const focusableElements = document.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        
+        focusableElements.forEach(element => {
+            element.addEventListener('focus', () => {
+                element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+    }
+    
+    // Announce to screen reader
+    announceToScreenReader(message) {
+        const liveRegion = document.getElementById('aria-live-region');
+        if (liveRegion) {
+            liveRegion.textContent = message;
+            setTimeout(() => {
+                liveRegion.textContent = '';
+            }, 1000);
+        }
+    }
+    
+    // Update ARIA current for navigation
+    updateAriaCurrent() {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const section = item.dataset.section;
+            if (section === this.currentSection) {
+                item.setAttribute('aria-current', 'page');
+                item.classList.add('active');
+            } else {
+                item.removeAttribute('aria-current');
+                item.classList.remove('active');
+            }
+        });
+    }
 }
 
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const highContrast = localStorage.getItem('highContrast') === 'true';
+    
+    if (highContrast) {
+        document.documentElement.setAttribute('data-theme', 'high-contrast');
+        const toggle = document.getElementById('high-contrast-toggle');
+        if (toggle) toggle.setAttribute('aria-pressed', 'true');
+    } else {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
     
     const themeIcon = document.querySelector('.theme-icon');
     const themeLabel = document.getElementById('theme-label');
     
+    if (themeIcon && themeLabel) {
         themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-    themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+        themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+    }
     
     // Initialize dashboard
     new MaptapDashboard();

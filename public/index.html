@@ -50,14 +50,14 @@
         </header>
 
         <!-- Navigation -->
-        <nav class="nav">
+        <nav class="nav" role="navigation" aria-label="Main navigation">
             <div class="swipe-hint">👆 Swipe left/right to navigate</div>
-            <button class="nav-item active" data-section="overview">Overview</button>
-            <button class="nav-item" data-section="leaderboard">Leaderboard</button>
-            <button class="nav-item" data-section="trends">Trends</button>
-            <button class="nav-item" data-section="analytics">Analytics</button>
-            <button class="nav-item" data-section="rawdata">Raw Data</button>
-            <button class="nav-item hidden" data-section="player-profile" id="profile-nav-item">Profile</button>
+            <button class="nav-item active" data-section="overview" aria-label="Overview section" aria-current="page">Overview</button>
+            <button class="nav-item" data-section="leaderboard" aria-label="Leaderboard section">Leaderboard</button>
+            <button class="nav-item" data-section="trends" aria-label="Trends section">Trends</button>
+            <button class="nav-item" data-section="analytics" aria-label="Analytics section">Analytics</button>
+            <button class="nav-item" data-section="rawdata" aria-label="Raw Data section">Raw Data</button>
+            <button class="nav-item hidden" data-section="player-profile" id="profile-nav-item" aria-label="Player Profile section">Profile</button>
         </nav>
 
         <!-- Filters -->
@@ -75,11 +75,13 @@
                 <div class="filters">
                     <div class="filter-group">
                         <label for="player-search">Search Players:</label>
-                        <input type="text" id="player-search" placeholder="Type to search players..." class="search-input">
+                        <label for="player-search" class="sr-only">Search players</label>
+                        <input type="text" id="player-search" placeholder="Type to search players..." class="search-input" aria-label="Search players">
                     </div>
                     <div class="filter-group">
                         <label for="player-filter">Player:</label>
-                        <select id="player-filter" multiple size="5" class="multi-select">
+                        <label for="player-filter" class="sr-only">Filter by players</label>
+                        <select id="player-filter" multiple size="5" class="multi-select" aria-label="Filter by players" aria-multiselectable="true">
                             <option value="">All Players</option>
                         </select>
                         <small class="filter-hint">Hold Ctrl/Cmd to select multiple</small>
@@ -87,28 +89,28 @@
                     <div class="filter-group">
                         <label for="date-range-start">Date Range:</label>
                         <div class="date-range-group">
-                            <input type="date" id="date-range-start" class="date-input">
-                            <span>to</span>
-                            <input type="date" id="date-range-end" class="date-input">
+                            <input type="date" id="date-range-start" class="date-input" aria-label="Start date">
+                            <span aria-hidden="true">to</span>
+                            <input type="date" id="date-range-end" class="date-input" aria-label="End date">
                         </div>
                     </div>
                     <div class="filter-group">
                         <label for="date-filter">Quick Date:</label>
-                        <select id="date-filter">
+                        <select id="date-filter" aria-label="Quick date filter">
                             <option value="">All Dates</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="score-range-min">Score Range:</label>
                         <div class="score-range-group">
-                            <input type="number" id="score-range-min" placeholder="Min" min="0" max="1000" class="score-input">
-                            <span>to</span>
-                            <input type="number" id="score-range-max" placeholder="Max" min="0" max="1000" class="score-input">
+                            <input type="number" id="score-range-min" placeholder="Min" min="0" max="1000" class="score-input" aria-label="Minimum score">
+                            <span aria-hidden="true">to</span>
+                            <input type="number" id="score-range-max" placeholder="Max" min="0" max="1000" class="score-input" aria-label="Maximum score">
                         </div>
                     </div>
                     <div class="filter-group">
                         <label for="sort-filter">Sort by:</label>
-                        <select id="sort-filter">
+                        <select id="sort-filter" aria-label="Sort by">
                             <option value="avgScore">Average Score</option>
                             <option value="totalScore">Total Score</option>
                             <option value="perfectScores">Perfect Scores</option>
@@ -132,7 +134,7 @@
         </div>
         
         <!-- Main Content -->
-        <main class="main">
+        <main class="main" id="main-content" role="main">
             <!-- Overview Section -->
             <section id="overview" class="section active">
                 <div class="stats-grid">

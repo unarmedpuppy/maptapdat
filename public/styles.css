@@ -2317,6 +2317,129 @@ select:focus {
     }
 }
 
+/* Accessibility Improvements */
+
+/* Screen reader only text */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus indicators */
+*:focus-visible {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 5px var(--accent-primary);
+}
+
+button:focus-visible,
+.nav-item:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 5px var(--accent-primary);
+}
+
+/* Skip to main content link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    padding: 8px;
+    text-decoration: none;
+    z-index: 1000;
+    font-weight: bold;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* High contrast mode */
+[data-theme="high-contrast"] {
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #000000;
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --text-muted: #ffffff;
+    --border-color: #ffffff;
+    --accent-primary: #ffff00;
+    --accent-secondary: #ffff00;
+    --success: #00ff00;
+    --warning: #ffaa00;
+    --error: #ff0000;
+}
+
+[data-theme="high-contrast"] * {
+    border-color: #ffffff !important;
+}
+
+[data-theme="high-contrast"] button,
+[data-theme="high-contrast"] .nav-item,
+[data-theme="high-contrast"] .stat-card {
+    border: 2px solid #ffffff;
+}
+
+[data-theme="high-contrast"] *:focus-visible {
+    outline: 4px solid #ffff00;
+    outline-offset: 3px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .spinning-globe {
+        animation: none !important;
+    }
+}
+
+/* Keyboard navigation improvements */
+.nav-item:focus,
+button:focus,
+input:focus,
+select:focus {
+    position: relative;
+    z-index: 10;
+}
+
+/* ARIA live regions */
+.aria-live {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* Better contrast for links */
+a {
+    text-decoration: underline;
+}
+
+a:focus {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
 /* Player Profile Section */
 .profile-header {
     display: flex;
