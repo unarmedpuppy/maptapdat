@@ -330,6 +330,60 @@ class MaptapDashboard {
         }, 1000);
     }
     
+    setupLazyChartLoading() {
+        // Use Intersection Observer to load charts only when visible
+        const observerOptions = {
+            root: null,
+            rootMargin: '50px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const sectionId = entry.target.id;
+                    if (!this.chartsLoaded.has(sectionId)) {
+                        this.chartsLoaded.add(sectionId);
+                        this.loadChartsForSection(sectionId);
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all sections
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    }
+    
+    loadChartsForSection(sectionId) {
+        switch(sectionId) {
+            case 'leaderboard':
+                if (this.data && this.data.leaderboard) {
+                    this.createLeaderboardChart();
+                }
+                break;
+            case 'trends':
+                if (this.data && (this.data.trends || this.data.aggregations)) {
+                    this.createTrendsChart();
+                }
+                break;
+            case 'analytics':
+                if (this.data && this.data.analytics) {
+                    const dataToUse = this.filteredData || this.data;
+                    this.createEmojiChart(dataToUse.games);
+                    this.createStreaksChart(dataToUse.games);
+                    this.createPerfectLeadersChart(dataToUse.games);
+                    this.createLocationDifficultyChart();
+                    this.createLocationHeatmap();
+                    this.createScoreDistributionChart(dataToUse.games);
+                    this.createImprovementTrendsChart();
+                    this.updatePlayerAnalytics();
+                }
+                break;
+        }
+    }
+    
     makePlayerNamesClickable() {
         const tbody = document.querySelector('#leaderboard-table tbody');
         if (!tbody) return;
