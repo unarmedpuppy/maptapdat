@@ -473,6 +473,9 @@ app.get('/api/analytics', (req, res) => {
     // Calculate streaks
     const streaks = calculateStreaks(gameGroups);
     
+    // Calculate achievements/badges
+    const achievements = calculateAchievements(gameGroups, streaks);
+    
     res.json({
         emojiFrequency: Object.entries(emojiCounts)
             .map(([emoji, count]) => ({ emoji, count }))
@@ -485,9 +488,181 @@ app.get('/api/analytics', (req, res) => {
             start: Array.from(dates).sort()[0],
             end: Array.from(dates).sort().slice(-1)[0]
         },
-        streaks: streaks
+        streaks: streaks,
+        achievements: achievements
     });
 });
+
+// Helper function to calculate achievements/badges
+function calculateAchievements(gameGroups, streaks) {
+    const achievements = {};
+    
+    // Group games by user
+    const userGames = {};
+    Object.values(gameGroups).forEach(game => {
+        if (!userGames[game.user]) {
+            userGames[game.user] = [];
+        }
+        userGames[game.user].push(game);
+    });
+    
+    Object.entries(userGames).forEach(([user, games]) => {
+        const userAchievements = [];
+        const uniqueDates = [...new Set(games.map(g => g.date))].sort();
+        const totalGames = uniqueDates.length;
+        
+        // Calculate stats
+        const totalScore = games.reduce((sum, g) => sum + g.totalScore, 0);
+        const avgScore = Math.round(totalScore / totalGames);
+        const scores = games.map(g => g.totalScore);
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        
+        // Achievement: First Game
+        if (totalGames >= 1) {
+            userAchievements.push({
+                id: 'first-game',
+                name: 'First Steps',
+                description: 'Played your first game',
+                icon: '🎮',
+                unlocked: true,
+                unlockedDate: uniqueDates[0]
+            });
+        }
+        
+        // Achievement: 10 Games
+        if (totalGames >= 10) {
+            userAchievements.push({
+                id: '10-games',
+                name: 'Getting Started',
+                description: 'Played 10 games',
+                icon: '🏃',
+                unlocked: true,
+                unlockedDate: uniqueDates[9]
+            });
+        }
+        
+        // Achievement: 50 Games
+        if (totalGames >= 50) {
+            userAchievements.push({
+                id: '50-games',
+                name: 'Dedicated Player',
+                description: 'Played 50 games',
+                icon: '💪',
+                unlocked: true,
+                unlockedDate: uniqueDates[49]
+            });
+        }
+        
+        // Achievement: 100 Games
+        if (totalGames >= 100) {
+            userAchievements.push({
+                id: '100-games',
+                name: 'Century Club',
+                description: 'Played 100 games',
+                icon: '🏆',
+                unlocked: true,
+                unlockedDate: uniqueDates[99]
+            });
+        }
+        
+        // Achievement: Perfect Score
+        if (maxScore >= 1000) {
+            const perfectGame = games.find(g => g.totalScore >= 1000);
+            userAchievements.push({
+                id: 'perfect-score',
+                name: 'Perfect Game',
+                description: 'Scored 1000 points',
+                icon: '⭐',
+                unlocked: true,
+                unlockedDate: perfectGame.date
+            });
+        }
+        
+        // Achievement: High Score (950+)
+        if (maxScore >= 950) {
+            const highScoreGame = games.find(g => g.totalScore === maxScore);
+            userAchievements.push({
+                id: 'high-score',
+                name: 'Elite Scorer',
+                description: 'Scored 950+ points',
+                icon: '🔥',
+                unlocked: true,
+                unlockedDate: highScoreGame.date
+            });
+        }
+        
+        // Achievement: Consistent Player (low std dev)
+        if (totalGames >= 10) {
+            const mean = totalScore / totalGames;
+            const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / totalGames;
+            const stdDev = Math.sqrt(variance);
+            if (stdDev < 50) {
+                userAchievements.push({
+                    id: 'consistent',
+                    name: 'Consistent Player',
+                    description: 'Low score variance (std dev < 50)',
+                    icon: '📊',
+                    unlocked: true,
+                    unlockedDate: uniqueDates[uniqueDates.length - 1]
+                });
+            }
+        }
+        
+        // Achievement: Streak Master
+        if (streaks && streaks.longestStreaks) {
+            const userStreak = streaks.longestStreaks.find(s => s.user === user);
+            if (userStreak && userStreak.streak >= 10) {
+                userAchievements.push({
+                    id: 'streak-master',
+                    name: 'Streak Master',
+                    description: `10+ day streak (${userStreak.streak} days)`,
+                    icon: '🔥',
+                    unlocked: true,
+                    unlockedDate: userStreak.endDate
+                });
+            }
+        }
+        
+        // Achievement: Comeback King (low score then high score)
+        if (totalGames >= 5) {
+            const firstHalf = scores.slice(0, Math.floor(totalGames / 2));
+            const secondHalf = scores.slice(Math.floor(totalGames / 2));
+            const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+            const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+            if (secondAvg - firstAvg >= 100) {
+                userAchievements.push({
+                    id: 'comeback',
+                    name: 'Comeback King',
+                    description: 'Improved by 100+ points average',
+                    icon: '📈',
+                    unlocked: true,
+                    unlockedDate: uniqueDates[uniqueDates.length - 1]
+                });
+            }
+        }
+        
+        // Achievement: Average Ace (900+ avg)
+        if (avgScore >= 900) {
+            userAchievements.push({
+                id: 'average-ace',
+                name: 'Average Ace',
+                description: '900+ average score',
+                icon: '🎯',
+                unlocked: true,
+                unlockedDate: uniqueDates[uniqueDates.length - 1]
+            });
+        }
+        
+        achievements[user] = userAchievements.sort((a, b) => {
+            const dateA = new Date(a.unlockedDate);
+            const dateB = new Date(b.unlockedDate);
+            return dateB - dateA; // Most recent first
+        });
+    });
+    
+    return achievements;
+}
 
 // Helper function to calculate streaks
 function calculateStreaks(gameGroups) {

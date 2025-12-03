@@ -883,10 +883,54 @@ class MaptapDashboard {
                 <h3>Performance Calendar</h3>
                 <div id="performance-calendar" class="calendar-grid"></div>
             </div>
+            
+            <div class="profile-achievements">
+                <h3>🏅 Achievements</h3>
+                <div id="profile-achievements-grid" class="achievements-grid"></div>
+            </div>
         `;
         
         // Render performance calendar
         this.renderPerformanceCalendar(playerData);
+        
+        // Render achievements
+        this.renderProfileAchievements(playerData.user);
+    }
+    
+    renderProfileAchievements(playerName) {
+        const container = document.getElementById('profile-achievements-grid');
+        if (!container) return;
+        
+        const achievements = this.data.analytics?.achievements?.[playerName] || [];
+        
+        if (achievements.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No achievements unlocked yet. Keep playing!</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        achievements.forEach(achievement => {
+            const badge = document.createElement('div');
+            badge.className = 'achievement-badge';
+            badge.title = `${achievement.name}: ${achievement.description}`;
+            
+            const formatDate = (dateStr) => {
+                const [year, month, day] = dateStr.split('-');
+                return `${parseInt(month)}/${parseInt(day)}/${year}`;
+            };
+            
+            badge.innerHTML = `
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-description">${achievement.description}</div>
+                    <div class="achievement-date">Unlocked: ${formatDate(achievement.unlockedDate)}</div>
+                </div>
+            `;
+            
+            container.appendChild(badge);
+        });
     }
     
     renderPerformanceCalendar(playerData) {
@@ -953,6 +997,61 @@ class MaptapDashboard {
         
         // Update streaks
         this.updateStreaks();
+        
+        // Update achievements leaderboard
+        this.updateAchievementsLeaderboard();
+    }
+    
+    updateAchievementsLeaderboard() {
+        const container = document.getElementById('achievements-leaderboard');
+        if (!container) return;
+        
+        const achievements = this.data.analytics?.achievements || {};
+        
+        // Calculate achievement counts per player
+        const playerAchievements = Object.entries(achievements).map(([player, playerAchievements]) => ({
+            player: player,
+            count: playerAchievements.length,
+            achievements: playerAchievements
+        })).sort((a, b) => b.count - a.count);
+        
+        if (playerAchievements.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No achievements unlocked yet.</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        playerAchievements.forEach(({ player, count, achievements: playerAchievementsList }, index) => {
+            const card = document.createElement('div');
+            card.className = 'achievement-leaderboard-card';
+            
+            const rank = index + 1;
+            const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+            
+            // Get recent achievements (last 3)
+            const recentAchievements = playerAchievementsList.slice(0, 3);
+            
+            card.innerHTML = `
+                <div class="achievement-rank">${rankIcon}</div>
+                <div class="achievement-player-info">
+                    <div class="achievement-player-name">${player}</div>
+                    <div class="achievement-count">${count} achievement${count !== 1 ? 's' : ''}</div>
+                </div>
+                <div class="achievement-badges-preview">
+                    ${recentAchievements.map(a => `<span class="badge-icon" title="${a.name}">${a.icon}</span>`).join('')}
+                    ${count > 3 ? `<span class="badge-more">+${count - 3}</span>` : ''}
+                </div>
+            `;
+            
+            // Make clickable to go to profile
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                this.showPlayerProfile(player);
+            });
+            
+            container.appendChild(card);
+        });
     }
     
     updateStreaks() {
