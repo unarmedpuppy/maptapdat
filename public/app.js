@@ -80,16 +80,17 @@ class MaptapDashboard {
         // Add tooltips to overview stat cards
         const statCards = document.querySelectorAll('.stat-card');
         const tooltips = {
-            'daily-winner': 'Player with the highest score today',
-            'daily-loser': 'Player with the lowest score today',
-            'overall-winner': 'Player with the highest average score',
-            'overall-loser': 'Player with the lowest average score',
-            'most-games': 'Player who has played the most games',
-            'least-games': 'Player who has played the fewest games',
-            'total-games': 'Total number of games played',
-            'total-players': 'Number of unique players',
-            'perfect-scores': 'Total number of perfect scores (1000 points)',
-            'date-range': 'Date range of all games in the dataset'
+            'daily-winner': 'Player with the highest total score today. Each game consists of 5 location scores.',
+            'daily-loser': 'Player with the lowest total score today. Each game consists of 5 location scores.',
+            'overall-winner': 'Player with the highest average score across all their games. Calculated as total score divided by number of games.',
+            'overall-loser': 'Player with the lowest average score across all their games. Calculated as total score divided by number of games.',
+            'most-games': 'Player who has played the most unique games. Each game is counted once per day per player.',
+            'least-games': 'Player who has played the fewest unique games. Each game is counted once per day per player.',
+            'total-games': 'Total number of unique games played across all players. Each game is counted once per day per player.',
+            'total-players': 'Number of unique players who have played at least one game.',
+            'perfect-scores': 'Total number of perfect scores achieved. A perfect score is 1000 points (100 points × 5 locations).',
+            'date-range': 'The date range covering all games in the dataset, from the first game to the most recent game.',
+            'games-today': 'Number of unique games played today. Each player can have one game per day.'
         };
         
         statCards.forEach(card => {
@@ -98,6 +99,28 @@ class MaptapDashboard {
                 const id = statValue.id;
                 if (tooltips[id]) {
                     this.addTooltip(card, tooltips[id], 'top');
+                }
+            }
+        });
+        
+        // Also add tooltips to profile stat cards
+        const profileStatCards = document.querySelectorAll('.profile-stat-card');
+        const profileTooltips = {
+            'Total Games': 'Total number of unique games this player has played. Each game is counted once per day.',
+            'Average Score': 'Average total score across all games. Calculated as sum of all scores divided by number of games.',
+            'Perfect Scores': 'Number of perfect scores (1000 points) this player has achieved.',
+            'Highest Score': 'The player\'s personal best (PB) - their highest total score ever achieved.',
+            'Lowest Score': 'The player\'s worst score - their lowest total score ever achieved.',
+            'Current Streak': 'Number of consecutive days the player has played games. Resets if they miss a day.',
+            'Longest Streak': 'The longest consecutive day streak this player has achieved.'
+        };
+        
+        profileStatCards.forEach(card => {
+            const statLabel = card.querySelector('.stat-label');
+            if (statLabel) {
+                const labelText = statLabel.textContent.trim();
+                if (profileTooltips[labelText]) {
+                    this.addTooltip(card, profileTooltips[labelText], 'top');
                 }
             }
         });
@@ -1273,6 +1296,9 @@ class MaptapDashboard {
         
         // Update achievements leaderboard
         this.updateAchievementsLeaderboard();
+        
+        // Add tooltips to stat cards
+        setTimeout(() => this.addTooltipsToStats(), 100);
         
         // Update insights and predictions (only if overview section is active)
         if (this.currentSection === 'overview') {
