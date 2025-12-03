@@ -47,6 +47,9 @@
                         <button id="high-contrast-toggle" class="theme-toggle" aria-label="Toggle high contrast mode" aria-pressed="false" title="High Contrast Mode">
                             <span>🔍</span>
                         </button>
+                        <button id="keyboard-shortcuts-btn" class="theme-toggle" aria-label="Show keyboard shortcuts" title="Keyboard Shortcuts (?)">
+                            <span>⌨️</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -578,6 +581,71 @@
         </div>
     </div>
 
-    <script src="app.js?v=20250103"></script>
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div id="keyboard-shortcuts-modal" class="modal hidden" role="dialog" aria-labelledby="shortcuts-modal-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="shortcuts-modal-title">⌨️ Keyboard Shortcuts</h2>
+                <button class="modal-close" aria-label="Close keyboard shortcuts" onclick="dashboard.closeKeyboardShortcutsModal()">
+                    <span>✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-list">
+                    <div class="shortcut-group">
+                        <h3>Navigation</h3>
+                        <div class="shortcut-item">
+                            <kbd>1</kbd>
+                            <span>Overview</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>2</kbd>
+                            <span>Leaderboard</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>3</kbd>
+                            <span>Trends</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>4</kbd>
+                            <span>Analytics</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>5</kbd>
+                            <span>Raw Data</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>←</kbd> / <kbd>→</kbd>
+                            <span>Previous / Next Section</span>
+                        </div>
+                    </div>
+                    <div class="shortcut-group">
+                        <h3>Actions</h3>
+                        <div class="shortcut-item">
+                            <kbd>?</kbd>
+                            <span>Show this help</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Esc</kbd>
+                            <span>Close modals / filters</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Alt</kbd> + <kbd>T</kbd>
+                            <span>Toggle theme</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Alt</kbd> + <kbd>H</kbd>
+                            <span>Toggle high contrast</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="dashboard.closeKeyboardShortcutsModal()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20250104"></script>
 </body>
 </html>

@@ -62,10 +62,10 @@ class MaptapDashboard {
         this.showSkeletonLoading('trends-chart', 'chart');
         
         try {
-            await this.loadData();
-            this.populateFilters();
-            this.updateOverview();
-            this.hideLoading();
+        await this.loadData();
+        this.populateFilters();
+        this.updateOverview();
+        this.hideLoading();
             
             // Add tooltips to stat cards
             setTimeout(() => this.addTooltipsToStats(), 500);
@@ -139,8 +139,8 @@ class MaptapDashboard {
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
-                this.toggleTheme();
-            });
+            this.toggleTheme();
+        });
         }
         
         // High contrast toggle
@@ -151,6 +151,14 @@ class MaptapDashboard {
             });
         }
         
+        // Keyboard shortcuts button
+        const keyboardShortcutsBtn = document.getElementById('keyboard-shortcuts-btn');
+        if (keyboardShortcutsBtn) {
+            keyboardShortcutsBtn.addEventListener('click', () => {
+                this.showKeyboardShortcutsModal();
+            });
+        }
+        
         // Keyboard navigation
         this.setupKeyboardNavigation();
         
@@ -158,16 +166,16 @@ class MaptapDashboard {
         const filtersToggle = document.getElementById('filters-toggle');
         if (filtersToggle) {
             filtersToggle.addEventListener('click', () => {
-                this.openFilters();
-            });
+            this.openFilters();
+        });
         }
         
         // Filters close
         const filtersClose = document.getElementById('filters-close');
         if (filtersClose) {
             filtersClose.addEventListener('click', () => {
-                this.closeFilters();
-            });
+            this.closeFilters();
+        });
         }
         
         // Enhanced Filters
@@ -187,8 +195,8 @@ class MaptapDashboard {
             playerFilter.addEventListener('change', (e) => {
                 const selected = Array.from(e.target.selectedOptions).map(opt => opt.value).filter(v => v);
                 this.currentFilters.players = selected;
-                this.applyFilters();
-            });
+            this.applyFilters();
+        });
         }
         
         // Date range picker
@@ -218,7 +226,7 @@ class MaptapDashboard {
         const dateFilter = document.getElementById('date-filter');
         if (dateFilter) {
             dateFilter.addEventListener('change', (e) => {
-                this.currentFilters.date = e.target.value;
+            this.currentFilters.date = e.target.value;
                 // Clear date range when using quick date
                 if (e.target.value) {
                     this.currentFilters.dateRangeStart = '';
@@ -228,19 +236,19 @@ class MaptapDashboard {
                     if (startEl) startEl.value = '';
                     if (endEl) endEl.value = '';
                 }
-                
-                // Update URL hash if we're on leaderboard section
-                if (this.currentSection === 'leaderboard') {
-                    if (e.target.value) {
-                        window.location.hash = `leaderboard?date=${e.target.value}`;
-                    } else {
-                        window.location.hash = 'leaderboard';
-                    }
+            
+            // Update URL hash if we're on leaderboard section
+            if (this.currentSection === 'leaderboard') {
+                if (e.target.value) {
+                    window.location.hash = `leaderboard?date=${e.target.value}`;
+                } else {
+                    window.location.hash = 'leaderboard';
                 }
-                
-                this.updateLeaderboardSortIndicator();
-                this.applyFilters();
-            });
+            }
+            
+            this.updateLeaderboardSortIndicator();
+            this.applyFilters();
+        });
         }
         
         // Score range filter - debounced
@@ -264,10 +272,10 @@ class MaptapDashboard {
         const sortFilter = document.getElementById('sort-filter');
         if (sortFilter) {
             sortFilter.addEventListener('change', (e) => {
-                this.currentFilters.sort = e.target.value;
-                this.updateLeaderboardSortIndicator();
-                this.applyFilters();
-            });
+            this.currentFilters.sort = e.target.value;
+            this.updateLeaderboardSortIndicator();
+            this.applyFilters();
+        });
         }
         
         // Clear filters button
@@ -300,8 +308,8 @@ class MaptapDashboard {
         const exportCsv = document.getElementById('export-csv');
         if (exportCsv) {
             exportCsv.addEventListener('click', () => {
-                this.exportCSV();
-            });
+            this.exportCSV();
+        });
         }
         
         const exportFilteredCsv = document.getElementById('export-filtered-csv');
@@ -314,8 +322,8 @@ class MaptapDashboard {
         const refreshData = document.getElementById('refresh-data');
         if (refreshData) {
             refreshData.addEventListener('click', () => {
-                this.loadData();
-            });
+            this.loadData();
+        });
         }
         
         // Export chart buttons
@@ -417,38 +425,38 @@ class MaptapDashboard {
         const overallLeaderboard = document.getElementById('overall-leaderboard');
         if (overallLeaderboard) {
             overallLeaderboard.addEventListener('click', () => {
-                this.currentFilters.date = '';
-                this.currentFilters.sort = 'avgScore';
+            this.currentFilters.date = '';
+            this.currentFilters.sort = 'avgScore';
                 const dateFilter = document.getElementById('date-filter');
                 const sortFilter = document.getElementById('sort-filter');
                 if (dateFilter) dateFilter.value = '';
                 if (sortFilter) sortFilter.value = 'avgScore';
-                this.hideLeaderboardDate();
-                this.showLeaderboardSort('avgScore');
-                this.applyFilters();
-                this.updateLeaderboard();
-            });
+            this.hideLeaderboardDate();
+            this.showLeaderboardSort('avgScore');
+            this.applyFilters();
+            this.updateLeaderboard();
+        });
         }
         
         const dailyLeaderboard = document.getElementById('daily-leaderboard');
         if (dailyLeaderboard) {
             dailyLeaderboard.addEventListener('click', () => {
-                // Set to most recent date
-                const mostRecentDate = this.getMostRecentDate();
-                this.currentFilters.date = mostRecentDate;
-                this.currentFilters.sort = 'totalScore';
+            // Set to most recent date
+            const mostRecentDate = this.getMostRecentDate();
+            this.currentFilters.date = mostRecentDate;
+            this.currentFilters.sort = 'totalScore';
                 const dateFilter = document.getElementById('date-filter');
                 const sortFilter = document.getElementById('sort-filter');
                 if (dateFilter) dateFilter.value = mostRecentDate;
                 if (sortFilter) sortFilter.value = 'totalScore';
-                
-                // Update URL hash with date parameter
-                window.location.hash = `leaderboard?date=${mostRecentDate}`;
-                
-                this.updateLeaderboardSortIndicator();
-                this.applyFilters();
-                this.updateLeaderboard();
-            });
+            
+            // Update URL hash with date parameter
+            window.location.hash = `leaderboard?date=${mostRecentDate}`;
+            
+            this.updateLeaderboardSortIndicator();
+            this.applyFilters();
+            this.updateLeaderboard();
+        });
         }
         
         // Comparison feature event listeners
@@ -1275,16 +1283,16 @@ class MaptapDashboard {
         
         // Update overall stats using unfiltered data
         if (this.data.analytics) {
-            document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
-            document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
-            document.getElementById('perfect-scores').textContent = 
-                this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
-            
-            const dateRange = this.data.analytics.dateRange;
-            if (dateRange) {
-                const start = new Date(dateRange.start).toLocaleDateString();
-                const end = new Date(dateRange.end).toLocaleDateString();
-                document.getElementById('date-range').textContent = `${start} - ${end}`;
+        document.getElementById('total-games').textContent = this.data.analytics.totalGames || 0;
+        document.getElementById('total-players').textContent = this.data.analytics.uniquePlayers || 0;
+        document.getElementById('perfect-scores').textContent = 
+            this.data.analytics.perfectScoreLeaders?.reduce((sum, user) => sum + user.perfectScores, 0) || 0;
+        
+        const dateRange = this.data.analytics.dateRange;
+        if (dateRange) {
+            const start = new Date(dateRange.start).toLocaleDateString();
+            const end = new Date(dateRange.end).toLocaleDateString();
+            document.getElementById('date-range').textContent = `${start} - ${end}`;
             }
         }
         
@@ -2280,7 +2288,7 @@ class MaptapDashboard {
         // If period is 'day', use existing logic
         if (this.currentPeriod === 'day') {
             const trends = this.calculateTrends(filteredGames);
-            this.data.trends = trends;
+        this.data.trends = trends;
             
             // Load rolling averages if checkbox is checked
             if (this.showRollingAverage) {
@@ -2297,7 +2305,7 @@ class MaptapDashboard {
                 this.data.aggregations = null;
             }
             
-            this.createTrendsChart();
+        this.createTrendsChart();
             this.renderTrendInsights(filteredGames);
             this.renderPlayerMiniCharts(filteredGames);
         } else {
@@ -3011,14 +3019,14 @@ class MaptapDashboard {
         // Handle period aggregation vs daily trends
         if (this.currentPeriod === 'day' && this.data.trends && this.data.trends.length > 0) {
             // Daily trends - existing logic
-            const playerTrends = {};
-            this.data.trends.forEach(trend => {
-                if (!playerTrends[trend.user]) {
-                    playerTrends[trend.user] = [];
-                }
-                playerTrends[trend.user].push(trend);
-            });
-            
+        const playerTrends = {};
+        this.data.trends.forEach(trend => {
+            if (!playerTrends[trend.user]) {
+                playerTrends[trend.user] = [];
+            }
+            playerTrends[trend.user].push(trend);
+        });
+        
             labels = [...new Set(this.data.trends.map(t => t.date))].sort();
             
             // Limit to top 8 players by game count to avoid clutter
@@ -3027,10 +3035,10 @@ class MaptapDashboard {
                 .slice(0, 8);
             
             players.forEach(([player, trends], index) => {
-                const data = labels.map(date => {
-                    const trend = trends.find(t => t.date === date);
-                    return trend ? trend.totalScore : null;
-                });
+            const data = labels.map(date => {
+                const trend = trends.find(t => t.date === date);
+                return trend ? trend.totalScore : null;
+            });
                 
                 datasets.push({
                     label: player,
@@ -3106,13 +3114,13 @@ class MaptapDashboard {
                     const agg = periodMap[period];
                     return agg ? Math.round(agg.totalScore / agg.gamesPlayed) : null;
                 });
-                
-                datasets.push({
-                    label: player,
-                    data: data,
-                    borderColor: colors[index % colors.length],
-                    backgroundColor: colors[index % colors.length] + '20',
-                    tension: 0.4,
+            
+            datasets.push({
+                label: player,
+                data: data,
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '20',
+                tension: 0.4,
                     fill: false,
                     pointRadius: 4
                 });
@@ -4962,6 +4970,17 @@ class MaptapDashboard {
     
     // Setup keyboard navigation
     setupKeyboardNavigation() {
+        // Define section mapping
+        const sectionMap = {
+            '1': 'overview',
+            '2': 'leaderboard',
+            '3': 'trends',
+            '4': 'analytics',
+            '5': 'rawdata'
+        };
+        
+        const sections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
+        
         // Arrow key navigation for sections
         document.addEventListener('keydown', (e) => {
             // Skip if user is typing in an input
@@ -4969,23 +4988,56 @@ class MaptapDashboard {
                 return;
             }
             
-            // Alt + Arrow keys for section navigation
-            if (e.altKey) {
-                const sections = ['overview', 'leaderboard', 'trends', 'analytics', 'rawdata'];
+            // Number keys (1-5) for direct section navigation
+            if (e.key >= '1' && e.key <= '5' && !e.altKey && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                const section = sectionMap[e.key];
+                if (section) {
+                    this.showSection(section);
+                    window.location.hash = section;
+                    this.announceToScreenReader(`Navigated to ${section} section`);
+                }
+            }
+            
+            // Arrow keys for section navigation (without Alt for easier access)
+            if (!e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                 const currentIndex = sections.indexOf(this.currentSection);
                 
                 if (e.key === 'ArrowRight' && currentIndex < sections.length - 1) {
                     e.preventDefault();
-                    this.showSection(sections[currentIndex + 1]);
-                    window.location.hash = sections[currentIndex + 1];
+                    const nextSection = sections[currentIndex + 1];
+                    this.showSection(nextSection);
+                    window.location.hash = nextSection;
+                    this.announceToScreenReader(`Navigated to ${nextSection} section`);
                 } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
                     e.preventDefault();
-                    this.showSection(sections[currentIndex - 1]);
-                    window.location.hash = sections[currentIndex - 1];
+                    const prevSection = sections[currentIndex - 1];
+                    this.showSection(prevSection);
+                    window.location.hash = prevSection;
+                    this.announceToScreenReader(`Navigated to ${prevSection} section`);
                 }
             }
             
-            // Escape key to close modals/filters
+            // Alt + Arrow keys for section navigation (backward compatibility)
+            if (e.altKey) {
+                const currentIndex = sections.indexOf(this.currentSection);
+                
+                if (e.key === 'ArrowRight' && currentIndex < sections.length - 1) {
+                    e.preventDefault();
+                    const nextSection = sections[currentIndex + 1];
+                    this.showSection(nextSection);
+                    window.location.hash = nextSection;
+                    this.announceToScreenReader(`Navigated to ${nextSection} section`);
+                } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                    e.preventDefault();
+                    const prevSection = sections[currentIndex - 1];
+                    this.showSection(prevSection);
+                    window.location.hash = prevSection;
+                    this.announceToScreenReader(`Navigated to ${prevSection} section`);
+                }
+            }
+            
+            // Escape key to close modals/filters/help
             if (e.key === 'Escape') {
                 const filtersContent = document.getElementById('filters-content');
                 if (filtersContent && !filtersContent.classList.contains('hidden')) {
@@ -4996,18 +5048,34 @@ class MaptapDashboard {
                 if (comparisonModal && !comparisonModal.classList.contains('hidden')) {
                     this.closeComparisonModal();
                 }
+                
+                const helpModal = document.getElementById('keyboard-shortcuts-modal');
+                if (helpModal && !helpModal.classList.contains('hidden')) {
+                    this.closeKeyboardShortcutsModal();
+                }
+            }
+            
+            // ? key or Alt + H for help modal
+            if (e.key === '?' && !e.altKey && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                this.showKeyboardShortcutsModal();
             }
             
             // Alt + T for theme toggle
             if (e.altKey && e.key === 't') {
                 e.preventDefault();
-                document.getElementById('theme-toggle').click();
+                const themeToggle = document.getElementById('theme-toggle');
+                if (themeToggle) themeToggle.click();
             }
             
-            // Alt + H for high contrast toggle
+            // Alt + H for high contrast toggle (only if help modal not open)
             if (e.altKey && e.key === 'h') {
-                e.preventDefault();
-                document.getElementById('high-contrast-toggle').click();
+                const helpModal = document.getElementById('keyboard-shortcuts-modal');
+                if (!helpModal || helpModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    const highContrastToggle = document.getElementById('high-contrast-toggle');
+                    if (highContrastToggle) highContrastToggle.click();
+                }
             }
         });
         
@@ -5021,6 +5089,26 @@ class MaptapDashboard {
                 element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         });
+    }
+    
+    // Show keyboard shortcuts help modal
+    showKeyboardShortcutsModal() {
+        const modal = document.getElementById('keyboard-shortcuts-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            const firstButton = modal.querySelector('button');
+            if (firstButton) firstButton.focus();
+        }
+    }
+    
+    // Close keyboard shortcuts help modal
+    closeKeyboardShortcutsModal() {
+        const modal = document.getElementById('keyboard-shortcuts-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
     }
     
     // Announce to screen reader
@@ -5668,7 +5756,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggle = document.getElementById('high-contrast-toggle');
         if (toggle) toggle.setAttribute('aria-pressed', 'true');
     } else {
-        document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
     }
     
     const themeIcon = document.querySelector('.theme-icon');
@@ -5676,7 +5764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (themeIcon && themeLabel) {
         themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-        themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+    themeLabel.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
     }
     
     // Initialize dashboard

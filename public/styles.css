@@ -3406,6 +3406,67 @@ a:focus {
     margin-top: 0.25rem;
 }
 
+/* Keyboard Shortcuts Modal */
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.shortcut-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.shortcut-group h3 {
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+}
+
+.shortcut-item kbd {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    min-width: 2rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.shortcut-item span {
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.modal-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
 @media (max-width: 768px) {
     .modal-content {
         width: 95%;
@@ -3418,6 +3479,16 @@ a:focus {
     
     .comparison-head-to-head .head-to-head-stats {
         flex-direction: column;
+    }
+    
+    .shortcut-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .shortcut-item kbd {
+        min-width: auto;
     }
 }
 
