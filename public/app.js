@@ -4380,6 +4380,614 @@ class MaptapDashboard {
             }
         });
     }
+    
+    // Advanced Visualizations
+    
+    createRadarChart() {
+        const ctx = document.getElementById('radar-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        const playerSelect = document.getElementById('radar-player-select');
+        
+        if (!playerSelect) return;
+        
+        // Populate player select
+        if (this.data && this.data.players) {
+            playerSelect.innerHTML = '<option value="">Select Player...</option>';
+            this.data.players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                playerSelect.appendChild(option);
+            });
+        }
+        
+        // Update chart when player is selected
+        playerSelect.addEventListener('change', (e) => {
+            const selectedPlayer = e.target.value;
+            if (selectedPlayer) {
+                this.updateRadarChart(selectedPlayer);
+            } else {
+                if (this.charts.radar) {
+                    this.charts.radar.destroy();
+                    this.charts.radar = null;
+                }
+            }
+        });
+    }
+    
+    updateRadarChart(playerName) {
+        const ctx = document.getElementById('radar-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        
+        if (this.charts.radar) {
+            this.charts.radar.destroy();
+        }
+        
+        // Get player data
+        const playerGames = this.data.games.filter(g => g.user === playerName);
+        if (playerGames.length === 0) return;
+        
+        // Group by date to get unique games
+        const gameScores = {};
+        playerGames.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gameScores[key]) {
+                gameScores[key] = {
+                    date: game.date,
+                    locationScores: []
+                };
+            }
+            gameScores[key].locationScores.push(game.location_score);
+        });
+        
+        const games = Object.values(gameScores);
+        
+        // Calculate average scores per location
+        const locationAverages = [0, 0, 0, 0, 0];
+        const locationCounts = [0, 0, 0, 0, 0];
+        
+        games.forEach(game => {
+            game.locationScores.forEach((score, index) => {
+                if (index < 5) {
+                    locationAverages[index] += score;
+                    locationCounts[index]++;
+                }
+            });
+        });
+        
+        const avgScores = locationAverages.map((sum, i) => 
+            locationCounts[i] > 0 ? Math.round(sum / locationCounts[i]) : 0
+        );
+        
+        // Calculate other metrics
+        const totalScores = games.map(g => {
+            return g.locationScores.reduce((a, b) => a + b, 0);
+        });
+        const avgTotalScore = totalScores.length > 0 
+            ? Math.round(totalScores.reduce((a, b) => a + b, 0) / totalScores.length)
+            : 0;
+        const consistency = totalScores.length > 1 ? this.calculateStdDev(totalScores) : 0;
+        
+        // Normalize scores to 0-100 scale for radar chart
+        const normalizeScore = (score, max = 100) => Math.min(100, (score / max) * 100);
+        
+        const labels = [
+            'Location 1',
+            'Location 2', 
+            'Location 3',
+            'Location 4',
+            'Location 5',
+            'Avg Score',
+            'Consistency'
+        ];
+        
+        const data = [
+            ...avgScores.map(s => normalizeScore(s, 100)),
+            normalizeScore(avgTotalScore / 5, 100), // Average per location
+            normalizeScore(100 - consistency, 100) // Consistency (inverted, higher is better)
+        ];
+        
+        this.charts.radar = new Chart(ctx2d, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: playerName,
+                    data: data,
+                    backgroundColor: 'rgba(255, 0, 193, 0.2)',
+                    borderColor: '#ff00c1',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ff00c1',
+                    pointBorderColor: '#9600ff',
+                    pointHoverBackgroundColor: '#9600ff',
+                    pointHoverBorderColor: '#ff00c1',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                if (index < 5) {
+                                    return `Location ${index + 1}: ${avgScores[index]}`;
+                                } else if (index === 5) {
+                                    return `Avg Score: ${avgTotalScore}`;
+                                } else {
+                                    return `Consistency: ${Math.round(100 - consistency)}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.2)'
+                        },
+                        pointLabels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            }
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 10
+                            },
+                            stepSize: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    createBoxPlotChart(games = this.data.games) {
+        const ctx = document.getElementById('box-plot-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        
+        if (this.charts.boxPlot) {
+            this.charts.boxPlot.destroy();
+        }
+        
+        // Group games by player-date to get unique game scores
+        const playerScores = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!playerScores[key]) {
+                playerScores[key] = {
+                    user: game.user,
+                    date: game.date,
+                    totalScore: game.total_score
+                };
+            }
+        });
+        
+        // Group scores by player
+        const scoresByPlayer = {};
+        Object.values(playerScores).forEach(game => {
+            if (!scoresByPlayer[game.user]) {
+                scoresByPlayer[game.user] = [];
+            }
+            scoresByPlayer[game.user].push(game.totalScore);
+        });
+        
+        // Calculate box plot statistics for each player
+        const boxPlotData = [];
+        const labels = [];
+        
+        Object.entries(scoresByPlayer)
+            .filter(([player, scores]) => scores.length >= 5) // Need at least 5 data points
+            .sort((a, b) => {
+                const avgA = a[1].reduce((sum, s) => sum + s, 0) / a[1].length;
+                const avgB = b[1].reduce((sum, s) => sum + s, 0) / b[1].length;
+                return avgB - avgA;
+            })
+            .slice(0, 10) // Top 10 players
+            .forEach(([player, scores]) => {
+                scores.sort((a, b) => a - b);
+                const q1 = this.percentile(scores, 25);
+                const median = this.percentile(scores, 50);
+                const q3 = this.percentile(scores, 75);
+                const min = Math.min(...scores);
+                const max = Math.max(...scores);
+                const iqr = q3 - q1;
+                const lowerWhisker = Math.max(min, q1 - 1.5 * iqr);
+                const upperWhisker = Math.min(max, q3 + 1.5 * iqr);
+                
+                labels.push(player);
+                boxPlotData.push({
+                    min: lowerWhisker,
+                    q1: q1,
+                    median: median,
+                    q3: q3,
+                    max: upperWhisker,
+                    outliers: scores.filter(s => s < lowerWhisker || s > upperWhisker)
+                });
+            });
+        
+        if (labels.length === 0) {
+            ctx2d.clearRect(0, 0, ctx.width, ctx.height);
+            ctx2d.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted');
+            ctx2d.font = '12px Courier New';
+            ctx2d.fillText('Not enough data for box plot', 10, 20);
+            return;
+        }
+        
+        // Create box plot using bar chart with custom styling
+        const datasets = [];
+        const chartColors = this.getChartColors(labels.length);
+        
+        labels.forEach((label, index) => {
+            const data = boxPlotData[index];
+            datasets.push({
+                label: label,
+                data: [data.median],
+                backgroundColor: chartColors[index].backgroundColor,
+                borderColor: chartColors[index].borderColor,
+                borderWidth: 2
+            });
+        });
+        
+        this.charts.boxPlot = new Chart(ctx2d, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const data = boxPlotData[index];
+                                return [
+                                    `Min: ${data.min}`,
+                                    `Q1: ${data.q1}`,
+                                    `Median: ${data.median}`,
+                                    `Q3: ${data.q3}`,
+                                    `Max: ${data.max}`,
+                                    data.outliers.length > 0 ? `Outliers: ${data.outliers.length}` : ''
+                                ].filter(Boolean);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Draw box plot elements manually on canvas
+        setTimeout(() => {
+            this.drawBoxPlotElements(ctx2d, boxPlotData, labels);
+        }, 100);
+    }
+    
+    drawBoxPlotElements(ctx, boxPlotData, labels) {
+        const chart = this.charts.boxPlot;
+        if (!chart) return;
+        
+        const meta = chart.getDatasetMeta(0);
+        const scale = chart.scales.y;
+        
+        boxPlotData.forEach((data, index) => {
+            const bar = meta.data[index];
+            if (!bar) return;
+            
+            const x = bar.x;
+            const boxWidth = 30;
+            const whiskerWidth = 10;
+            
+            // Draw median line
+            ctx.strokeStyle = '#00fff9';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x - boxWidth / 2, scale.getPixelForValue(data.median));
+            ctx.lineTo(x + boxWidth / 2, scale.getPixelForValue(data.median));
+            ctx.stroke();
+            
+            // Draw box (Q1 to Q3)
+            ctx.strokeStyle = '#ff00c1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                x - boxWidth / 2,
+                scale.getPixelForValue(data.q3),
+                boxWidth,
+                scale.getPixelForValue(data.q1) - scale.getPixelForValue(data.q3)
+            );
+            
+            // Draw whiskers
+            ctx.strokeStyle = '#9600ff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, scale.getPixelForValue(data.q3));
+            ctx.lineTo(x, scale.getPixelForValue(data.max));
+            ctx.moveTo(x - whiskerWidth / 2, scale.getPixelForValue(data.max));
+            ctx.lineTo(x + whiskerWidth / 2, scale.getPixelForValue(data.max));
+            ctx.moveTo(x, scale.getPixelForValue(data.q1));
+            ctx.lineTo(x, scale.getPixelForValue(data.min));
+            ctx.moveTo(x - whiskerWidth / 2, scale.getPixelForValue(data.min));
+            ctx.lineTo(x + whiskerWidth / 2, scale.getPixelForValue(data.min));
+            ctx.stroke();
+        });
+    }
+    
+    percentile(sortedArray, p) {
+        if (sortedArray.length === 0) return 0;
+        const index = (p / 100) * (sortedArray.length - 1);
+        const lower = Math.floor(index);
+        const upper = Math.ceil(index);
+        const weight = index - lower;
+        return sortedArray[lower] * (1 - weight) + sortedArray[upper] * weight;
+    }
+    
+    calculateStdDev(values) {
+        if (values.length === 0) return 0;
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+        return Math.sqrt(variance);
+    }
+    
+    createCorrelationMatrix(games = this.data.games) {
+        const container = document.getElementById('correlation-matrix');
+        if (!container) return;
+        
+        // Group games by user-date
+        const gameScores = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gameScores[key]) {
+                gameScores[key] = {
+                    user: game.user,
+                    date: game.date,
+                    locationScores: [],
+                    totalScore: 0
+                };
+            }
+            gameScores[key].locationScores.push(game.location_score);
+            gameScores[key].totalScore = game.total_score;
+        });
+        
+        const gamesList = Object.values(gameScores);
+        
+        // Calculate correlations between locations
+        const correlations = [];
+        const locations = ['Location 1', 'Location 2', 'Location 3', 'Location 4', 'Location 5'];
+        
+        for (let i = 0; i < 5; i++) {
+            for (let j = i + 1; j < 5; j++) {
+                const scoresI = gamesList.map(g => g.locationScores[i] || 0);
+                const scoresJ = gamesList.map(g => g.locationScores[j] || 0);
+                const correlation = this.calculateCorrelation(scoresI, scoresJ);
+                
+                correlations.push({
+                    loc1: i,
+                    loc2: j,
+                    correlation: correlation,
+                    label1: locations[i],
+                    label2: locations[j]
+                });
+            }
+        }
+        
+        // Sort by absolute correlation
+        correlations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+        
+        container.innerHTML = '';
+        
+        // Display top correlations
+        const topCorrelations = correlations.slice(0, 6);
+        topCorrelations.forEach(corr => {
+            const card = document.createElement('div');
+            card.className = 'correlation-card';
+            const strength = Math.abs(corr.correlation);
+            const strengthText = strength > 0.7 ? 'Strong' : strength > 0.4 ? 'Moderate' : 'Weak';
+            const direction = corr.correlation > 0 ? 'positive' : 'negative';
+            
+            card.innerHTML = `
+                <div class="correlation-pair">
+                    <span>${corr.label1}</span>
+                    <span class="correlation-arrow">↔</span>
+                    <span>${corr.label2}</span>
+                </div>
+                <div class="correlation-value ${direction}">
+                    ${(corr.correlation * 100).toFixed(1)}%
+                </div>
+                <div class="correlation-strength">${strengthText} ${direction}</div>
+            `;
+            
+            container.appendChild(card);
+        });
+    }
+    
+    calculateCorrelation(x, y) {
+        if (x.length !== y.length || x.length === 0) return 0;
+        
+        const n = x.length;
+        const sumX = x.reduce((a, b) => a + b, 0);
+        const sumY = y.reduce((a, b) => a + b, 0);
+        const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+        const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+        const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0);
+        
+        const numerator = n * sumXY - sumX * sumY;
+        const denominator = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+        
+        if (denominator === 0) return 0;
+        return numerator / denominator;
+    }
+    
+    createCalendarHeatmap(games = this.data.games) {
+        const container = document.getElementById('calendar-heatmap');
+        if (!container) return;
+        
+        // Group games by date
+        const gamesByDate = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gamesByDate[game.date]) {
+                gamesByDate[game.date] = new Set();
+            }
+            gamesByDate[game.date].add(game.user);
+        });
+        
+        // Get date range
+        const dates = Object.keys(gamesByDate).sort();
+        if (dates.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No data available</p>';
+            return;
+        }
+        
+        const startDate = new Date(dates[0] + 'T00:00:00');
+        const endDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+        
+        // Create calendar grid
+        container.innerHTML = '';
+        const calendarGrid = document.createElement('div');
+        calendarGrid.className = 'calendar-heatmap-grid';
+        
+        // Find max games per day for normalization
+        const maxGamesPerDay = Math.max(...Object.values(gamesByDate).map(s => s.size));
+        
+        // Generate calendar cells
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayGames = gamesByDate[dateStr] || new Set();
+            const gameCount = dayGames.size;
+            const intensity = maxGamesPerDay > 0 ? gameCount / maxGamesPerDay : 0;
+            
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            cell.setAttribute('data-date', dateStr);
+            cell.setAttribute('data-count', gameCount);
+            cell.setAttribute('title', `${dateStr}: ${gameCount} game${gameCount !== 1 ? 's' : ''}`);
+            
+            // Color intensity based on game count
+            if (intensity === 0) {
+                cell.style.backgroundColor = 'var(--bg-tertiary)';
+            } else if (intensity < 0.25) {
+                cell.style.backgroundColor = 'rgba(0, 184, 255, 0.3)';
+            } else if (intensity < 0.5) {
+                cell.style.backgroundColor = 'rgba(0, 184, 255, 0.6)';
+            } else if (intensity < 0.75) {
+                cell.style.backgroundColor = 'rgba(150, 0, 255, 0.6)';
+            } else {
+                cell.style.backgroundColor = 'rgba(255, 0, 193, 0.8)';
+            }
+            
+            cell.style.border = '1px solid var(--border-color)';
+            
+            // Add date label (first day of month)
+            const [year, month, day] = dateStr.split('-');
+            if (parseInt(day) === 1) {
+                cell.innerHTML = `<div class="heatmap-month-label">${new Date(year, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'short' })}</div>`;
+            }
+            
+            calendarGrid.appendChild(cell);
+        }
+        
+        container.appendChild(calendarGrid);
+        
+        // Add legend
+        const legend = document.createElement('div');
+        legend.className = 'heatmap-legend';
+        legend.innerHTML = `
+            <div class="legend-label">Less</div>
+            <div class="legend-cells">
+                <div class="legend-cell" style="background-color: var(--bg-tertiary);"></div>
+                <div class="legend-cell" style="background-color: rgba(0, 184, 255, 0.3);"></div>
+                <div class="legend-cell" style="background-color: rgba(0, 184, 255, 0.6);"></div>
+                <div class="legend-cell" style="background-color: rgba(150, 0, 255, 0.6);"></div>
+                <div class="legend-cell" style="background-color: rgba(255, 0, 193, 0.8);"></div>
+            </div>
+            <div class="legend-label">More</div>
+        `;
+        container.appendChild(legend);
+    }
 }
 
 // Initialize the dashboard when DOM is loaded
