@@ -2258,7 +2258,6 @@ select:focus {
     /* Optimize table scrolling on mobile */
     .raw-data-table-container {
         -webkit-overflow-scrolling: touch;
-        overflow-scrolling: touch;
     }
     
     .raw-data-table {
