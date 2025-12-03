@@ -1120,10 +1120,256 @@ class MaptapDashboard {
             try {
                 this.updateInsights();
                 this.updatePredictions();
+                this.updateDataQuality();
             } catch (error) {
                 console.error('Error updating insights/predictions:', error);
             }
         }
+    }
+    
+    updateDataQuality() {
+        const container = document.getElementById('data-quality-container');
+        if (!container) return;
+        
+        if (!this.data || !this.data.games || this.data.games.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No data available</p>';
+            return;
+        }
+        
+        const qualityInfo = this.calculateDataQuality();
+        
+        container.innerHTML = '';
+        
+        // Last updated timestamp
+        const lastUpdatedCard = document.createElement('div');
+        lastUpdatedCard.className = 'quality-card quality-info';
+        lastUpdatedCard.innerHTML = `
+            <div class="quality-icon">🕐</div>
+            <div class="quality-content">
+                <div class="quality-title">Last Updated</div>
+                <div class="quality-value" id="last-updated-time">${qualityInfo.lastUpdated}</div>
+                <div class="quality-details">${qualityInfo.lastUpdatedRelative}</div>
+            </div>
+        `;
+        container.appendChild(lastUpdatedCard);
+        
+        // Missing data days
+        if (qualityInfo.missingDays.length > 0) {
+            const missingCard = document.createElement('div');
+            missingCard.className = 'quality-card quality-warning';
+            const missingCount = qualityInfo.missingDays.length;
+            const missingText = missingCount === 1 
+                ? `1 missing day detected`
+                : `${missingCount} missing days detected`;
+            
+            missingCard.innerHTML = `
+                <div class="quality-icon">⚠️</div>
+                <div class="quality-content">
+                    <div class="quality-title">Missing Data</div>
+                    <div class="quality-value">${missingText}</div>
+                    <div class="quality-details">${qualityInfo.missingDays.slice(0, 5).join(', ')}${missingCount > 5 ? '...' : ''}</div>
+                </div>
+            `;
+            container.appendChild(missingCard);
+        }
+        
+        // Data anomalies
+        if (qualityInfo.anomalies.length > 0) {
+            const anomaliesCard = document.createElement('div');
+            anomaliesCard.className = 'quality-card quality-alert';
+            anomaliesCard.innerHTML = `
+                <div class="quality-icon">🔍</div>
+                <div class="quality-content">
+                    <div class="quality-title">Data Anomalies</div>
+                    <div class="quality-value">${qualityInfo.anomalies.length} detected</div>
+                    <div class="quality-details">${qualityInfo.anomalies.slice(0, 3).map(a => a.description).join(', ')}${qualityInfo.anomalies.length > 3 ? '...' : ''}</div>
+                </div>
+            `;
+            container.appendChild(anomaliesCard);
+        }
+        
+        // Data freshness
+        const freshnessCard = document.createElement('div');
+        freshnessCard.className = `quality-card quality-${qualityInfo.freshness.status}`;
+        freshnessCard.innerHTML = `
+            <div class="quality-icon">${qualityInfo.freshness.icon}</div>
+            <div class="quality-content">
+                <div class="quality-title">Data Freshness</div>
+                <div class="quality-value">${qualityInfo.freshness.statusText}</div>
+                <div class="quality-details">${qualityInfo.freshness.description}</div>
+            </div>
+        `;
+        container.appendChild(freshnessCard);
+        
+        // Data completeness
+        const completenessCard = document.createElement('div');
+        completenessCard.className = 'quality-card quality-info';
+        completenessCard.innerHTML = `
+            <div class="quality-icon">📈</div>
+            <div class="quality-content">
+                <div class="quality-title">Data Completeness</div>
+                <div class="quality-value">${qualityInfo.completeness}%</div>
+                <div class="quality-details">${qualityInfo.totalDays} days with data out of ${qualityInfo.expectedDays} expected</div>
+            </div>
+        `;
+        container.appendChild(completenessCard);
+    }
+    
+    calculateDataQuality() {
+        const games = this.data.games;
+        const dates = [...new Set(games.map(g => g.date))].sort();
+        
+        // Last updated - most recent game date
+        const mostRecentDate = dates[dates.length - 1];
+        const lastUpdatedDate = new Date(mostRecentDate + 'T00:00:00');
+        const now = new Date();
+        const diffMs = now - lastUpdatedDate;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        
+        let lastUpdatedRelative;
+        if (diffDays > 0) {
+            lastUpdatedRelative = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        } else if (diffHours > 0) {
+            lastUpdatedRelative = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        } else if (diffMinutes > 0) {
+            lastUpdatedRelative = `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+        } else {
+            lastUpdatedRelative = 'Just now';
+        }
+        
+        const formatDate = (dateStr) => {
+            const [year, month, day] = dateStr.split('-');
+            return `${parseInt(month)}/${parseInt(day)}/${year}`;
+        };
+        
+        // Detect missing data days
+        const missingDays = [];
+        if (dates.length > 1) {
+            const startDate = new Date(dates[0] + 'T00:00:00');
+            const endDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                if (!dates.includes(dateStr)) {
+                    // Check if it's a weekend (optional - you might want data every day)
+                    const dayOfWeek = d.getDay();
+                    // Only flag weekdays as missing (0 = Sunday, 6 = Saturday)
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        missingDays.push(formatDate(dateStr));
+                    }
+                }
+            }
+        }
+        
+        // Detect anomalies
+        const anomalies = [];
+        
+        // Anomaly 1: Unusually high scores (potential data entry errors)
+        const allScores = [];
+        const gameScores = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gameScores[key]) {
+                gameScores[key] = game.total_score;
+                allScores.push(game.total_score);
+            }
+        });
+        
+        if (allScores.length > 0) {
+            const mean = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+            const variance = allScores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / allScores.length;
+            const stdDev = Math.sqrt(variance);
+            const threshold = mean + (3 * stdDev); // 3 standard deviations
+            
+            const highScores = allScores.filter(s => s > threshold);
+            if (highScores.length > 0) {
+                anomalies.push({
+                    type: 'high-score',
+                    description: `${highScores.length} unusually high score${highScores.length > 1 ? 's' : ''} (>${Math.round(threshold)})`
+                });
+            }
+        }
+        
+        // Anomaly 2: Duplicate entries (same user, same date, same score)
+        const duplicateCheck = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}-${game.total_score}`;
+            duplicateCheck[key] = (duplicateCheck[key] || 0) + 1;
+        });
+        
+        const duplicates = Object.entries(duplicateCheck).filter(([key, count]) => count > 5);
+        if (duplicates.length > 0) {
+            anomalies.push({
+                type: 'duplicate',
+                description: `${duplicates.length} potential duplicate${duplicates.length > 1 ? 's' : ''} detected`
+            });
+        }
+        
+        // Anomaly 3: Missing location scores (incomplete games)
+        const incompleteGames = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!incompleteGames[key]) {
+                incompleteGames[key] = [];
+            }
+            incompleteGames[key].push(game);
+        });
+        
+        const incomplete = Object.values(incompleteGames).filter(gameSet => gameSet.length < 5);
+        if (incomplete.length > 0) {
+            anomalies.push({
+                type: 'incomplete',
+                description: `${incomplete.length} incomplete game${incomplete.length > 1 ? 's' : ''} (<5 locations)`
+            });
+        }
+        
+        // Data freshness
+        let freshnessStatus, freshnessIcon, freshnessStatusText, freshnessDescription;
+        if (diffDays === 0) {
+            freshnessStatus = 'fresh';
+            freshnessIcon = '✅';
+            freshnessStatusText = 'Fresh';
+            freshnessDescription = 'Data is up to date';
+        } else if (diffDays <= 2) {
+            freshnessStatus = 'recent';
+            freshnessIcon = '🟡';
+            freshnessStatusText = 'Recent';
+            freshnessDescription = `Last update was ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        } else if (diffDays <= 7) {
+            freshnessStatus = 'stale';
+            freshnessIcon = '🟠';
+            freshnessStatusText = 'Stale';
+            freshnessDescription = `Last update was ${diffDays} days ago`;
+        } else {
+            freshnessStatus = 'outdated';
+            freshnessIcon = '🔴';
+            freshnessStatusText = 'Outdated';
+            freshnessDescription = `Last update was ${diffDays} days ago`;
+        }
+        
+        // Data completeness
+        const startDate = new Date(dates[0] + 'T00:00:00');
+        const endDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+        const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        const completeness = Math.round((dates.length / totalDays) * 100);
+        
+        return {
+            lastUpdated: formatDate(mostRecentDate),
+            lastUpdatedRelative: lastUpdatedRelative,
+            missingDays: missingDays,
+            anomalies: anomalies,
+            freshness: {
+                status: freshnessStatus,
+                icon: freshnessIcon,
+                statusText: freshnessStatusText,
+                description: freshnessDescription
+            },
+            completeness: completeness,
+            totalDays: dates.length,
+            expectedDays: totalDays
+        };
     }
     
     updateInsights() {
