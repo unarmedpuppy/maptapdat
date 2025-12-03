@@ -1606,10 +1606,64 @@ select:focus {
     flex-wrap: wrap;
 }
 
+.trends-filters-panel {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.filter-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.trends-player-select {
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+    min-height: 100px;
+}
+
+.trends-player-select option {
+    padding: 0.25rem;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.date-input {
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
 .period-selector {
     padding: 0.5rem;
     background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     color: var(--text-primary);
     font-family: inherit;
     font-size: 0.9rem;
@@ -1633,6 +1687,128 @@ select:focus {
 .quick-filters {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+}
+
+/* Trend Insights */
+.trend-insights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.insight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-left: 4px solid var(--accent-primary);
+}
+
+.insight-card.insight-best {
+    border-left-color: #00fff9;
+}
+
+.insight-card.insight-worst {
+    border-left-color: #ff00c1;
+}
+
+.insight-card.insight-trend.trend-up {
+    border-left-color: #00fff9;
+}
+
+.insight-card.insight-trend.trend-down {
+    border-left-color: #ff00c1;
+}
+
+.insight-card.insight-recent {
+    border-left-color: #9600ff;
+}
+
+.insight-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.insight-content {
+    flex: 1;
+}
+
+.insight-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.insight-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.insight-details {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Player Mini Charts */
+.player-mini-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.mini-chart-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    padding: 1rem;
+}
+
+.mini-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mini-chart-header h4 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.mini-chart-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.trend-indicator {
+    font-weight: bold;
+}
+
+.trend-indicator.trend-up {
+    color: #00fff9;
+}
+
+.trend-indicator.trend-down {
+    color: #ff00c1;
+}
+
+.mini-chart-container {
+    height: 150px;
+    position: relative;
 }
 
 .btn-sm {
@@ -1649,34 +1825,92 @@ select:focus {
 
 .period-summary-card {
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     padding: 1rem;
     text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.period-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.period-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
 }
 
 .period-summary-card .period-label {
     font-size: 0.9rem;
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
     text-transform: uppercase;
+    font-weight: bold;
+}
+
+.period-trend {
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.period-trend.trend-up {
+    color: #00fff9;
+    background: rgba(0, 255, 249, 0.1);
+}
+
+.period-trend.trend-down {
+    color: #ff00c1;
+    background: rgba(255, 0, 193, 0.1);
 }
 
 .period-summary-card .period-value {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: var(--accent-primary);
     margin-bottom: 0.25rem;
 }
 
 .period-summary-card .period-details {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.period-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
     font-size: 0.8rem;
     color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.period-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 @media (max-width: 768px) {
     .trends-controls {
         flex-direction: column;
         align-items: stretch;
+    }
+    
+    .trends-filters-panel {
+        grid-template-columns: 1fr;
+    }
+    
+    .trend-insights {
+        grid-template-columns: 1fr;
+    }
+    
+    .player-mini-charts {
+        grid-template-columns: 1fr;
     }
     
     .period-summaries {

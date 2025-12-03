@@ -2000,16 +2000,18 @@ class MaptapDashboard {
         return result;
     }
     
-    async     updateTrends() {
+    async updateTrends() {
         // Only create chart if section is visible or already loaded
         if (this.currentSection !== 'trends' && !this.chartsLoaded.has('trends')) {
             return;
         }
         
+        // Apply current filters
+        const filteredGames = this.getFilteredTrendsGames();
+        
         // If period is 'day', use existing logic
         if (this.currentPeriod === 'day') {
-            const dataToUse = this.filteredData || this.data;
-            const trends = this.calculateTrends(dataToUse.games);
+            const trends = this.calculateTrends(filteredGames);
             this.data.trends = trends;
             
             // Load rolling averages if checkbox is checked
@@ -2028,10 +2030,326 @@ class MaptapDashboard {
             }
             
             this.createTrendsChart();
+            this.renderTrendInsights(filteredGames);
+            this.renderPlayerMiniCharts(filteredGames);
         } else {
             // Fetch aggregated data for other periods
             await this.updateTrendsWithAggregation();
         }
+    }
+    
+    getFilteredTrendsGames() {
+        let games = this.data.games || [];
+        
+        // Filter by selected players
+        const trendsPlayerSelect = document.getElementById('trends-player-select');
+        if (trendsPlayerSelect) {
+            const selectedOptions = Array.from(trendsPlayerSelect.selectedOptions);
+            const selectedPlayers = selectedOptions.map(opt => opt.value);
+            
+            if (!selectedPlayers.includes('all') && selectedPlayers.length > 0) {
+                games = games.filter(g => selectedPlayers.includes(g.user));
+            }
+        }
+        
+        // Filter by date range
+        const trendsDateStart = document.getElementById('trends-date-start');
+        const trendsDateEnd = document.getElementById('trends-date-end');
+        
+        if (trendsDateStart && trendsDateStart.value) {
+            games = games.filter(g => g.date >= trendsDateStart.value);
+        }
+        if (trendsDateEnd && trendsDateEnd.value) {
+            games = games.filter(g => g.date <= trendsDateEnd.value);
+        }
+        
+        return games;
+    }
+    
+    populateTrendsPlayerSelect() {
+        const select = document.getElementById('trends-player-select');
+        if (!select || !this.data || !this.data.players) return;
+        
+        select.innerHTML = '<option value="all" selected>All Players</option>';
+        this.data.players.forEach(player => {
+            const option = document.createElement('option');
+            option.value = player;
+            option.textContent = player;
+            select.appendChild(option);
+        });
+    }
+    
+    applyTrendsFilters() {
+        this.updateTrends();
+    }
+    
+    resetTrendsFilters() {
+        const trendsPlayerSelect = document.getElementById('trends-player-select');
+        const trendsDateStart = document.getElementById('trends-date-start');
+        const trendsDateEnd = document.getElementById('trends-date-end');
+        const rollingAverageToggle = document.getElementById('show-rolling-average');
+        
+        if (trendsPlayerSelect) {
+            trendsPlayerSelect.value = 'all';
+            Array.from(trendsPlayerSelect.options).forEach(opt => {
+                opt.selected = opt.value === 'all';
+            });
+        }
+        
+        if (trendsDateStart && trendsDateEnd) {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+            trendsDateEnd.value = endDate.toISOString().split('T')[0];
+            trendsDateStart.value = startDate.toISOString().split('T')[0];
+        }
+        
+        if (rollingAverageToggle) {
+            rollingAverageToggle.checked = false;
+            this.showRollingAverage = false;
+        }
+        
+        this.currentPeriod = 'day';
+        const trendsPeriodSelector = document.getElementById('trends-period-selector');
+        if (trendsPeriodSelector) {
+            trendsPeriodSelector.value = 'day';
+        }
+        
+        this.updateTrends();
+    }
+    
+    renderTrendInsights(games) {
+        const container = document.getElementById('trend-insights');
+        if (!container) return;
+        
+        if (!games || games.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        // Group by user-date
+        const gameScores = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gameScores[key]) {
+                gameScores[key] = {
+                    user: game.user,
+                    date: game.date,
+                    totalScore: game.total_score
+                };
+            }
+        });
+        
+        const scores = Object.values(gameScores).sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        if (scores.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        // Calculate insights
+        const bestDay = scores.reduce((best, current) => 
+            current.totalScore > best.totalScore ? current : best
+        );
+        
+        const worstDay = scores.reduce((worst, current) => 
+            current.totalScore < worst.totalScore ? current : worst
+        );
+        
+        // Calculate improvement trend
+        const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
+        const secondHalf = scores.slice(Math.floor(scores.length / 2));
+        
+        const firstHalfAvg = firstHalf.length > 0 
+            ? firstHalf.reduce((sum, s) => sum + s.totalScore, 0) / firstHalf.length 
+            : 0;
+        const secondHalfAvg = secondHalf.length > 0 
+            ? secondHalf.reduce((sum, s) => sum + s.totalScore, 0) / secondHalf.length 
+            : 0;
+        
+        const improvement = secondHalfAvg - firstHalfAvg;
+        const improvementPercent = firstHalfAvg > 0 ? ((improvement / firstHalfAvg) * 100).toFixed(1) : 0;
+        
+        // Calculate current streak
+        const recentScores = scores.slice(-10);
+        const avgRecent = recentScores.length > 0
+            ? recentScores.reduce((sum, s) => sum + s.totalScore, 0) / recentScores.length
+            : 0;
+        
+        container.innerHTML = `
+            <div class="insight-card insight-best">
+                <div class="insight-icon">🏆</div>
+                <div class="insight-content">
+                    <div class="insight-label">Best Day</div>
+                    <div class="insight-value">${bestDay.totalScore} pts</div>
+                    <div class="insight-details">${bestDay.user} • ${this.formatDate(bestDay.date)}</div>
+                </div>
+            </div>
+            <div class="insight-card insight-worst">
+                <div class="insight-icon">📉</div>
+                <div class="insight-content">
+                    <div class="insight-label">Worst Day</div>
+                    <div class="insight-value">${worstDay.totalScore} pts</div>
+                    <div class="insight-details">${worstDay.user} • ${this.formatDate(worstDay.date)}</div>
+                </div>
+            </div>
+            <div class="insight-card insight-trend ${improvement >= 0 ? 'trend-up' : 'trend-down'}">
+                <div class="insight-icon">${improvement >= 0 ? '📈' : '📉'}</div>
+                <div class="insight-content">
+                    <div class="insight-label">Trend</div>
+                    <div class="insight-value">${improvement >= 0 ? '+' : ''}${improvementPercent}%</div>
+                    <div class="insight-details">${improvement >= 0 ? 'Improving' : 'Declining'} over time</div>
+                </div>
+            </div>
+            <div class="insight-card insight-recent">
+                <div class="insight-icon">⚡</div>
+                <div class="insight-content">
+                    <div class="insight-label">Recent Avg</div>
+                    <div class="insight-value">${Math.round(avgRecent)} pts</div>
+                    <div class="insight-details">Last 10 games</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderPlayerMiniCharts(games) {
+        const container = document.getElementById('player-mini-charts');
+        if (!container) return;
+        
+        if (!games || games.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        // Group by player
+        const playerGames = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!playerGames[game.user]) {
+                playerGames[game.user] = [];
+            }
+            if (!playerGames[game.user].find(g => `${g.user}-${g.date}` === key)) {
+                playerGames[game.user].push({
+                    user: game.user,
+                    date: game.date,
+                    totalScore: game.total_score
+                });
+            }
+        });
+        
+        // Limit to top 6 players by game count
+        const players = Object.entries(playerGames)
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 6);
+        
+        container.innerHTML = '';
+        
+        players.forEach(([player, playerScores]) => {
+            const scores = playerScores.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const card = document.createElement('div');
+            card.className = 'mini-chart-card';
+            
+            const avgScore = scores.length > 0
+                ? Math.round(scores.reduce((sum, s) => sum + s.totalScore, 0) / scores.length)
+                : 0;
+            
+            const trend = scores.length >= 2
+                ? scores[scores.length - 1].totalScore - scores[0].totalScore
+                : 0;
+            
+            card.innerHTML = `
+                <div class="mini-chart-header">
+                    <h4>${player}</h4>
+                    <div class="mini-chart-stats">
+                        <span>Avg: ${avgScore}</span>
+                        <span class="trend-indicator ${trend >= 0 ? 'trend-up' : 'trend-down'}">
+                            ${trend >= 0 ? '↑' : '↓'} ${Math.abs(trend)}
+                        </span>
+                    </div>
+                </div>
+                <div class="mini-chart-container">
+                    <canvas class="mini-chart" data-player="${player}"></canvas>
+                </div>
+            `;
+            
+            container.appendChild(card);
+            
+            // Create mini chart
+            setTimeout(() => {
+                this.createMiniChart(player, scores, card.querySelector('.mini-chart'));
+            }, 100);
+        });
+    }
+    
+    createMiniChart(player, scores, canvas) {
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const labels = scores.map(s => {
+            const [year, month, day] = s.date.split('-');
+            return `${parseInt(month)}/${parseInt(day)}`;
+        });
+        const data = scores.map(s => s.totalScore);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: player,
+                    data: data,
+                    borderColor: '#ff00c1',
+                    backgroundColor: 'rgba(255, 0, 193, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 4,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 3,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#00fff9',
+                        bodyColor: '#ff00c1',
+                        borderColor: '#00fff9',
+                        borderWidth: 1,
+                        padding: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    formatDate(dateStr) {
+        const [year, month, day] = dateStr.split('-');
+        return `${parseInt(month)}/${parseInt(day)}/${year}`;
     }
     
     async updateTrendsWithAggregation() {
@@ -2116,10 +2434,21 @@ class MaptapDashboard {
             const avgScore = Math.round(period.totalScore / period.totalGames);
             
             card.innerHTML = `
-                <div class="period-label">${period.period}</div>
+                <div class="period-header">
+                    <div class="period-label">${period.period}</div>
+                    ${trend !== null ? `
+                        <div class="period-trend ${trend >= 0 ? 'trend-up' : 'trend-down'}">
+                            ${trend >= 0 ? '↑' : '↓'} ${Math.abs(trend)}
+                        </div>
+                    ` : ''}
+                </div>
                 <div class="period-value">${avgScore}</div>
                 <div class="period-details">Avg Score</div>
-                <div class="period-details">${period.totalGames} games • ${period.players.size} players</div>
+                <div class="period-stats">
+                    <span>Min: ${minScore}</span>
+                    <span>Max: ${maxScore}</span>
+                </div>
+                <div class="period-meta">${period.totalGames} games • ${period.players.size} players</div>
             `;
             
             container.appendChild(card);
@@ -2346,7 +2675,7 @@ class MaptapDashboard {
         
         let labels = [];
         let datasets = [];
-        const colors = ['#ff00c1', '#9600ff', '#4900ff', '#00b8ff', '#00fff9', '#ff00c1', '#9600ff'];
+        const chartColors = this.getChartColors(20);
         
         // Handle period aggregation vs daily trends
         if (this.currentPeriod === 'day' && this.data.trends && this.data.trends.length > 0) {
@@ -2361,7 +2690,12 @@ class MaptapDashboard {
             
             labels = [...new Set(this.data.trends.map(t => t.date))].sort();
             
-            Object.entries(playerTrends).forEach(([player, trends], index) => {
+            // Limit to top 8 players by game count to avoid clutter
+            const players = Object.entries(playerTrends)
+                .sort((a, b) => b[1].length - a[1].length)
+                .slice(0, 8);
+            
+            players.forEach(([player, trends], index) => {
                 const data = labels.map(date => {
                     const trend = trends.find(t => t.date === date);
                     return trend ? trend.totalScore : null;
@@ -2370,11 +2704,13 @@ class MaptapDashboard {
                 datasets.push({
                     label: player,
                     data: data,
-                    borderColor: colors[index % colors.length],
-                    backgroundColor: colors[index % colors.length] + '20',
+                    borderColor: chartColors[index].borderColor,
+                    backgroundColor: chartColors[index].backgroundColor,
                     tension: 0.4,
                     fill: false,
-                    pointRadius: 3
+                    pointRadius: isMobile ? 2 : 4,
+                    pointHoverRadius: isMobile ? 4 : 6,
+                    borderWidth: 2
                 });
             });
             

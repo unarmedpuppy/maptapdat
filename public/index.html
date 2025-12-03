@@ -305,26 +305,71 @@
                     <div class="trends-controls">
                         <button class="btn btn-secondary btn-sm" id="export-trends-chart">📥 Export Chart</button>
                         <button class="btn btn-secondary btn-sm" id="share-trends-link">🔗 Share Link</button>
-                        <select id="period-selector" class="period-selector">
+                    </div>
+                </div>
+                
+                <!-- Trends Filters -->
+                <div class="trends-filters-panel">
+                    <div class="filter-group">
+                        <label for="trends-period-selector">Period:</label>
+                        <select id="trends-period-selector" class="period-selector">
                             <option value="day">Daily</option>
                             <option value="week">Weekly</option>
                             <option value="month">Monthly</option>
                             <option value="quarter">Quarterly</option>
                             <option value="year">Yearly</option>
                         </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="trends-player-select">Players:</label>
+                        <select id="trends-player-select" class="trends-player-select" multiple>
+                            <option value="all" selected>All Players</option>
+                        </select>
+                        <small class="filter-hint">Select specific players or "All Players"</small>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="trends-date-start">Start Date:</label>
+                        <input type="date" id="trends-date-start" class="date-input">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="trends-date-end">End Date:</label>
+                        <input type="date" id="trends-date-end" class="date-input">
+                    </div>
+                    
+                    <div class="filter-group">
                         <label class="rolling-average-toggle">
                             <input type="checkbox" id="show-rolling-average">
                             <span>Show Rolling Averages</span>
                         </label>
-                        <div class="quick-filters">
-                            <button class="btn btn-secondary btn-sm" id="last-7-days">Last 7 Days</button>
-                            <button class="btn btn-secondary btn-sm" id="last-30-days">Last 30 Days</button>
-                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <button class="btn btn-primary btn-sm" id="apply-trends-filters">Apply Filters</button>
+                        <button class="btn btn-secondary btn-sm" id="reset-trends-filters">Reset</button>
+                    </div>
+                    
+                    <div class="quick-filters">
+                        <button class="btn btn-secondary btn-sm" id="last-7-days">Last 7 Days</button>
+                        <button class="btn btn-secondary btn-sm" id="last-30-days">Last 30 Days</button>
+                        <button class="btn btn-secondary btn-sm" id="last-90-days">Last 90 Days</button>
                     </div>
                 </div>
+                
+                <!-- Trend Insights -->
+                <div id="trend-insights" class="trend-insights"></div>
+                
+                <!-- Main Chart -->
                 <div class="chart-container">
                     <canvas id="trends-chart"></canvas>
                 </div>
+                
+                <!-- Player Mini Charts -->
+                <div id="player-mini-charts" class="player-mini-charts"></div>
+                
+                <!-- Period Summaries -->
                 <div id="period-summaries" class="period-summaries"></div>
             </section>
 
