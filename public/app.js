@@ -366,7 +366,7 @@ class MaptapDashboard {
         });
         
         // Set default values in UI
-        playerFilter.value = this.currentFilters.player;
+        // Multi-select doesn't use .value, handled separately
         dateFilter.value = this.currentFilters.date;
         document.getElementById('sort-filter').value = this.currentFilters.sort;
     }
