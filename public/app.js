@@ -1418,6 +1418,9 @@ class MaptapDashboard {
         this.createPerfectLeadersChart(dataToUse.games);
         this.createLocationDifficultyChart();
         this.createLocationHeatmap();
+        this.createScoreDistributionChart(dataToUse.games);
+        this.createImprovementTrendsChart();
+        this.updatePlayerAnalytics();
     }
     
     
@@ -2072,6 +2075,426 @@ class MaptapDashboard {
                     }
                 }
             }
+        });
+    }
+    
+    createScoreDistributionChart(games = this.data.games) {
+        const ctx = document.getElementById('score-distribution-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        
+        if (this.charts.scoreDistribution) {
+            this.charts.scoreDistribution.destroy();
+        }
+        
+        // Group games by user-date to get unique game scores
+        const gameScores = {};
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!gameScores[key]) {
+                gameScores[key] = game.total_score;
+            }
+        });
+        
+        const scores = Object.values(gameScores);
+        
+        // Create bins for histogram (0-1000, in 50-point increments)
+        const bins = [];
+        const binSize = 50;
+        for (let i = 0; i <= 1000; i += binSize) {
+            bins.push({ min: i, max: i + binSize - 1, count: 0 });
+        }
+        
+        scores.forEach(score => {
+            const binIndex = Math.floor(score / binSize);
+            if (binIndex < bins.length) {
+                bins[binIndex].count++;
+            }
+        });
+        
+        const labels = bins.map(bin => `${bin.min}-${bin.max}`);
+        const data = bins.map(bin => bin.count);
+        
+        this.charts.scoreDistribution = new Chart(ctx2d, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Games',
+                    data: data,
+                    backgroundColor: data.map((count, i) => {
+                        const score = i * binSize;
+                        if (score >= 900) return '#00fff9';
+                        if (score >= 800) return '#00b8ff';
+                        if (score >= 700) return '#9600ff';
+                        return '#ff00c1';
+                    }),
+                    borderColor: '#4900ff',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.parsed.y} games in ${context.label} range`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9',
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9',
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    createImprovementTrendsChart() {
+        const ctx = document.getElementById('improvement-trends-chart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        
+        if (this.charts.improvementTrends) {
+            this.charts.improvementTrends.destroy();
+        }
+        
+        // Calculate improvement rate (slope) for each player
+        const playerImprovements = [];
+        
+        this.data.players.forEach(player => {
+            const playerGames = this.data.games.filter(g => g.user === player);
+            
+            // Group by date
+            const gamesByDate = {};
+            playerGames.forEach(game => {
+                const key = `${game.user}-${game.date}`;
+                if (!gamesByDate[key]) {
+                    gamesByDate[key] = game.total_score;
+                }
+            });
+            
+            const dates = Object.keys(gamesByDate).map(key => key.split('-')[1]).sort();
+            const scores = dates.map(date => {
+                const key = Object.keys(gamesByDate).find(k => k.includes(date));
+                return gamesByDate[key];
+            });
+            
+            if (scores.length < 2) return;
+            
+            // Calculate linear regression slope (improvement rate)
+            const n = scores.length;
+            const x = scores.map((_, i) => i);
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = scores.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * scores[i], 0);
+            const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            
+            // Calculate consistency (standard deviation)
+            const mean = sumY / n;
+            const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            
+            playerImprovements.push({
+                player: player,
+                improvementRate: Math.round(slope * 100) / 100,
+                consistency: Math.round(stdDev),
+                avgScore: Math.round(mean),
+                gamesPlayed: scores.length
+            });
+        });
+        
+        // Sort by improvement rate
+        playerImprovements.sort((a, b) => b.improvementRate - a.improvementRate);
+        
+        const labels = playerImprovements.map(p => p.player);
+        const improvementData = playerImprovements.map(p => p.improvementRate);
+        const consistencyData = playerImprovements.map(p => p.consistency);
+        
+        this.charts.improvementTrends = new Chart(ctx2d, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Improvement Rate (slope)',
+                        data: improvementData,
+                        backgroundColor: '#00fff9',
+                        borderColor: '#00b8ff',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Consistency (std dev)',
+                        data: consistencyData,
+                        backgroundColor: '#ff00c1',
+                        borderColor: '#9600ff',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y1',
+                        type: 'line',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#00fff9'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    return `Improvement Rate: ${context.parsed.y} points/game`;
+                                } else {
+                                    return `Consistency: ${context.parsed.y} (lower is better)`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Improvement Rate',
+                            color: '#00fff9'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            color: '#ff00c1'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Consistency (std dev)',
+                            color: '#ff00c1'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 255, 249, 0.1)'
+                        },
+                        ticks: {
+                            color: '#00fff9',
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    async updatePlayerAnalytics() {
+        const container = document.getElementById('player-analytics-grid');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // Calculate analytics for each player
+        const playerAnalytics = [];
+        
+        for (const player of this.data.players) {
+            const playerGames = this.data.games.filter(g => g.user === player);
+            
+            // Group by date
+            const gamesByDate = {};
+            playerGames.forEach(game => {
+                const key = `${game.user}-${game.date}`;
+                if (!gamesByDate[key]) {
+                    gamesByDate[key] = {
+                        date: game.date,
+                        totalScore: game.total_score,
+                        scores: []
+                    };
+                }
+                gamesByDate[key].scores.push(game.location_score);
+            });
+            
+            const dates = Object.keys(gamesByDate).map(key => gamesByDate[key].date).sort();
+            const totalScores = dates.map(date => {
+                const game = Object.values(gamesByDate).find(g => g.date === date);
+                return game.totalScore;
+            });
+            
+            if (totalScores.length < 2) continue;
+            
+            // Calculate improvement rate
+            const n = totalScores.length;
+            const x = totalScores.map((_, i) => i);
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = totalScores.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * totalScores[i], 0);
+            const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            
+            // Calculate consistency (std dev)
+            const mean = sumY / n;
+            const variance = totalScores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            
+            // Calculate head-to-head records
+            const h2hRecords = {};
+            this.data.players.forEach(opponent => {
+                if (opponent === player) return;
+                
+                const commonDates = dates.filter(date => {
+                    const opponentKey = `${opponent}-${date}`;
+                    return Object.keys(gamesByDate).some(k => k.includes(date)) &&
+                           this.data.games.some(g => g.user === opponent && g.date === date);
+                });
+                
+                if (commonDates.length === 0) return;
+                
+                let wins = 0;
+                let losses = 0;
+                let ties = 0;
+                
+                commonDates.forEach(date => {
+                    const playerScore = gamesByDate[`${player}-${date}`]?.totalScore || 0;
+                    const opponentGames = this.data.games.filter(g => g.user === opponent && g.date === date);
+                    const opponentScore = opponentGames.length > 0 ? opponentGames[0].total_score : 0;
+                    
+                    if (playerScore > opponentScore) wins++;
+                    else if (playerScore < opponentScore) losses++;
+                    else ties++;
+                });
+                
+                h2hRecords[opponent] = { wins, losses, ties, games: commonDates.length };
+            });
+            
+            playerAnalytics.push({
+                player: player,
+                improvementRate: Math.round(slope * 100) / 100,
+                consistency: Math.round(stdDev),
+                avgScore: Math.round(mean),
+                gamesPlayed: totalScores.length,
+                h2hRecords: h2hRecords
+            });
+        }
+        
+        // Sort by improvement rate
+        playerAnalytics.sort((a, b) => b.improvementRate - a.improvementRate);
+        
+        // Create cards for each player
+        playerAnalytics.forEach(analytics => {
+            const card = document.createElement('div');
+            card.className = 'player-analytics-card';
+            
+            // Find best and worst H2H records
+            const h2hEntries = Object.entries(analytics.h2hRecords);
+            const bestH2H = h2hEntries.reduce((best, [opponent, record]) => {
+                const winRate = record.games > 0 ? record.wins / record.games : 0;
+                const bestWinRate = best.record.games > 0 ? best.record.wins / best.record.games : 0;
+                return winRate > bestWinRate ? { opponent, record } : best;
+            }, { opponent: '', record: { wins: 0, games: 0 } });
+            
+            const worstH2H = h2hEntries.reduce((worst, [opponent, record]) => {
+                const winRate = record.games > 0 ? record.wins / record.games : 1;
+                const worstWinRate = worst.record.games > 0 ? worst.record.wins / worst.record.games : 1;
+                return winRate < worstWinRate ? { opponent, record } : worst;
+            }, { opponent: '', record: { wins: 0, games: 0 } });
+            
+            card.innerHTML = `
+                <div class="analytics-card-header">
+                    <h4>${analytics.player}</h4>
+                </div>
+                <div class="analytics-stats">
+                    <div class="analytics-stat">
+                        <span class="stat-label">Improvement Rate</span>
+                        <span class="stat-value ${analytics.improvementRate >= 0 ? 'positive' : 'negative'}">
+                            ${analytics.improvementRate >= 0 ? '+' : ''}${analytics.improvementRate} pts/game
+                        </span>
+                    </div>
+                    <div class="analytics-stat">
+                        <span class="stat-label">Consistency</span>
+                        <span class="stat-value">${analytics.consistency} (std dev)</span>
+                    </div>
+                    <div class="analytics-stat">
+                        <span class="stat-label">Avg Score</span>
+                        <span class="stat-value">${analytics.avgScore}</span>
+                    </div>
+                    <div class="analytics-stat">
+                        <span class="stat-label">Games Played</span>
+                        <span class="stat-value">${analytics.gamesPlayed}</span>
+                    </div>
+                </div>
+                ${h2hEntries.length > 0 ? `
+                <div class="h2h-summary">
+                    <h5>Head-to-Head</h5>
+                    ${bestH2H.opponent ? `
+                    <div class="h2h-best">
+                        <span>Best vs:</span> <strong>${bestH2H.opponent}</strong>
+                        <span>${bestH2H.record.wins}-${bestH2H.record.losses}${bestH2H.record.ties > 0 ? `-${bestH2H.record.ties}` : ''}</span>
+                    </div>
+                    ` : ''}
+                    ${worstH2H.opponent && worstH2H.opponent !== bestH2H.opponent ? `
+                    <div class="h2h-worst">
+                        <span>Worst vs:</span> <strong>${worstH2H.opponent}</strong>
+                        <span>${worstH2H.record.wins}-${worstH2H.record.losses}${worstH2H.record.ties > 0 ? `-${worstH2H.record.ties}` : ''}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                ` : ''}
+            `;
+            
+            container.appendChild(card);
         });
     }
     
