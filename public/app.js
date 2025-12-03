@@ -157,8 +157,42 @@ class MaptapDashboard {
             this.exportCSV();
         });
         
+        document.getElementById('export-filtered-csv').addEventListener('click', () => {
+            this.exportFilteredCSV();
+        });
+        
         document.getElementById('refresh-data').addEventListener('click', () => {
             this.loadData();
+        });
+        
+        // Export chart buttons
+        document.getElementById('export-leaderboard-chart').addEventListener('click', () => {
+            this.exportChart('leaderboard');
+        });
+        
+        document.getElementById('export-trends-chart').addEventListener('click', () => {
+            this.exportChart('trends');
+        });
+        
+        document.getElementById('export-all-charts').addEventListener('click', () => {
+            this.exportAllCharts();
+        });
+        
+        // Share link buttons
+        document.getElementById('share-leaderboard-link').addEventListener('click', () => {
+            this.shareLink('leaderboard');
+        });
+        
+        document.getElementById('share-trends-link').addEventListener('click', () => {
+            this.shareLink('trends');
+        });
+        
+        document.getElementById('share-analytics-link').addEventListener('click', () => {
+            this.shareLink('analytics');
+        });
+        
+        document.getElementById('share-rawdata-link').addEventListener('click', () => {
+            this.shareLink('rawdata');
         });
         
         // Handle browser back/forward buttons
@@ -589,6 +623,42 @@ class MaptapDashboard {
         
         if (hash && validSections.includes(section)) {
             this.showSection(section);
+            
+            // Apply filters from URL params
+            if (params) {
+                if (params.has('players')) {
+                    const players = params.get('players').split(',');
+                    this.currentFilters.players = players;
+                    const playerFilter = document.getElementById('player-filter');
+                    Array.from(playerFilter.options).forEach(opt => {
+                        opt.selected = players.includes(opt.value);
+                    });
+                }
+                if (params.has('date')) {
+                    this.currentFilters.date = params.get('date');
+                    document.getElementById('date-filter').value = params.get('date');
+                }
+                if (params.has('dateStart')) {
+                    this.currentFilters.dateRangeStart = params.get('dateStart');
+                    document.getElementById('date-range-start').value = params.get('dateStart');
+                }
+                if (params.has('dateEnd')) {
+                    this.currentFilters.dateRangeEnd = params.get('dateEnd');
+                    document.getElementById('date-range-end').value = params.get('dateEnd');
+                }
+                if (params.has('scoreMin')) {
+                    this.currentFilters.scoreMin = parseInt(params.get('scoreMin'));
+                    document.getElementById('score-range-min').value = params.get('scoreMin');
+                }
+                if (params.has('scoreMax')) {
+                    this.currentFilters.scoreMax = parseInt(params.get('scoreMax'));
+                    document.getElementById('score-range-max').value = params.get('scoreMax');
+                }
+                if (params.has('sort')) {
+                    this.currentFilters.sort = params.get('sort');
+                    document.getElementById('sort-filter').value = params.get('sort');
+                }
+            }
             
             // Handle daily leaderboard with date parameter
             if (section === 'leaderboard' && params && params.has('date')) {
@@ -2476,15 +2546,155 @@ class MaptapDashboard {
             )
         ].join('\n');
         
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        this.downloadCSV(csvContent, `maptap-data-${new Date().toISOString().split('T')[0]}.csv`);
+    }
+    
+    exportFilteredCSV() {
+        const dataToExport = this.filteredData || this.data;
+        const headers = ['user', 'date', 'location_number', 'location_score', 'location_emoji', 'total_score'];
+        
+        // Build filter description
+        const filterDesc = [];
+        if (this.currentFilters.players && this.currentFilters.players.length > 0) {
+            filterDesc.push(`players-${this.currentFilters.players.join('_')}`);
+        }
+        if (this.currentFilters.date) {
+            filterDesc.push(`date-${this.currentFilters.date}`);
+        }
+        if (this.currentFilters.dateRangeStart || this.currentFilters.dateRangeEnd) {
+            filterDesc.push(`daterange-${this.currentFilters.dateRangeStart || 'start'}-${this.currentFilters.dateRangeEnd || 'end'}`);
+        }
+        if (this.currentFilters.scoreMin !== '' || this.currentFilters.scoreMax !== '') {
+            filterDesc.push(`score-${this.currentFilters.scoreMin || 'min'}-${this.currentFilters.scoreMax || 'max'}`);
+        }
+        
+        const csvContent = [
+            headers.join(','),
+            ...dataToExport.games.map(game => 
+                headers.map(header => {
+                    const value = game[header] || '';
+                    return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
+                        ? `"${value.replace(/"/g, '""')}"` 
+                        : value;
+                }).join(',')
+            )
+        ].join('\n');
+        
+        const filename = filterDesc.length > 0 
+            ? `maptap-data-filtered-${filterDesc.join('_')}-${new Date().toISOString().split('T')[0]}.csv`
+            : `maptap-data-filtered-${new Date().toISOString().split('T')[0]}.csv`;
+        
+        this.downloadCSV(csvContent, filename);
+    }
+    
+    downloadCSV(content, filename) {
+        const blob = new Blob([content], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `maptap-data-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
+    }
+    
+    exportChart(chartName) {
+        const chart = this.charts[chartName];
+        if (!chart) {
+            alert('Chart not available. Please wait for it to load.');
+            return;
+        }
+        
+        const url = chart.toBase64Image();
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `maptap-${chartName}-chart-${new Date().toISOString().split('T')[0]}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    exportAllCharts() {
+        const chartNames = ['leaderboard', 'trends', 'emoji', 'streaks', 'perfectLeaders', 'locationDifficulty'];
+        let exported = 0;
+        
+        chartNames.forEach(name => {
+            if (this.charts[name]) {
+                setTimeout(() => {
+                    this.exportChart(name);
+                    exported++;
+                    if (exported === chartNames.filter(n => this.charts[n]).length) {
+                        alert(`Exported ${exported} chart(s)!`);
+                    }
+                }, exported * 500); // Stagger exports
+            }
+        });
+        
+        if (exported === 0) {
+            alert('No charts available to export.');
+        }
+    }
+    
+    shareLink(section) {
+        // Build shareable URL with current filters
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+        
+        // Add section
+        params.set('section', section);
+        
+        // Add filters
+        if (this.currentFilters.players && this.currentFilters.players.length > 0) {
+            params.set('players', this.currentFilters.players.join(','));
+        }
+        if (this.currentFilters.date) {
+            params.set('date', this.currentFilters.date);
+        }
+        if (this.currentFilters.dateRangeStart) {
+            params.set('dateStart', this.currentFilters.dateRangeStart);
+        }
+        if (this.currentFilters.dateRangeEnd) {
+            params.set('dateEnd', this.currentFilters.dateRangeEnd);
+        }
+        if (this.currentFilters.scoreMin !== '') {
+            params.set('scoreMin', this.currentFilters.scoreMin);
+        }
+        if (this.currentFilters.scoreMax !== '') {
+            params.set('scoreMax', this.currentFilters.scoreMax);
+        }
+        if (this.currentFilters.sort) {
+            params.set('sort', this.currentFilters.sort);
+        }
+        
+        const shareUrl = `${baseUrl}#${section}?${params.toString()}`;
+        
+        // Copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Link copied to clipboard!\n\n' + shareUrl);
+            }).catch(() => {
+                this.fallbackCopyToClipboard(shareUrl);
+            });
+        } else {
+            this.fallbackCopyToClipboard(shareUrl);
+        }
+    }
+    
+    fallbackCopyToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('Link copied to clipboard!\n\n' + text);
+        } catch (err) {
+            prompt('Copy this link:', text);
+        }
+        document.body.removeChild(textArea);
     }
 }
 

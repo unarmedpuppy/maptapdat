@@ -7,6 +7,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
     <link rel="stylesheet" href="styles.css?v=20250101">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
     <script>
         // Cache buster for assets
         const cacheBuster = Date.now();
@@ -217,6 +219,8 @@
                         <button class="btn btn-secondary" id="overall-leaderboard">Overall</button>
                         <button class="btn btn-secondary" id="daily-leaderboard">Daily</button>
                         <button class="btn btn-primary" id="compare-players-btn">Compare Players</button>
+                        <button class="btn btn-secondary" id="export-leaderboard-chart">📥 Export Chart</button>
+                        <button class="btn btn-secondary" id="share-leaderboard-link">🔗 Share Link</button>
                     </div>
                 </div>
                 <div id="leaderboard-date" class="leaderboard-date hidden"></div>
@@ -263,6 +267,8 @@
                 <div class="section-header">
                     <h2>Score Trends</h2>
                     <div class="trends-controls">
+                        <button class="btn btn-secondary btn-sm" id="export-trends-chart">📥 Export Chart</button>
+                        <button class="btn btn-secondary btn-sm" id="share-trends-link">🔗 Share Link</button>
                         <select id="period-selector" class="period-selector">
                             <option value="day">Daily</option>
                             <option value="week">Weekly</option>
@@ -299,6 +305,13 @@
 
             <!-- Analytics Section -->
             <section id="analytics" class="section">
+                <div class="section-header">
+                    <h2>Analytics</h2>
+                    <div class="analytics-controls">
+                        <button class="btn btn-secondary btn-sm" id="export-all-charts">📥 Export All Charts</button>
+                        <button class="btn btn-secondary btn-sm" id="share-analytics-link">🔗 Share Link</button>
+                    </div>
+                </div>
                 <div class="analytics-grid">
                     <div class="analytics-card">
                         <h3>Emoji Frequency</h3>
@@ -336,7 +349,9 @@
                     <h2>Raw CSV Data</h2>
                     <div class="raw-data-controls">
                         <button class="btn btn-secondary" id="export-csv">Export CSV</button>
+                        <button class="btn btn-secondary" id="export-filtered-csv">Export Filtered CSV</button>
                         <button class="btn btn-secondary" id="refresh-data">Refresh</button>
+                        <button class="btn btn-secondary" id="share-rawdata-link">🔗 Share Link</button>
                     </div>
                 </div>
                 
