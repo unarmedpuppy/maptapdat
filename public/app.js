@@ -2419,19 +2419,43 @@ class MaptapDashboard {
                     period: agg.period,
                     totalScore: 0,
                     totalGames: 0,
-                    players: new Set()
+                    players: new Set(),
+                    scores: []
                 };
             }
             periodTotals[agg.period].totalScore += agg.totalScore;
             periodTotals[agg.period].totalGames += agg.gamesPlayed;
             periodTotals[agg.period].players.add(agg.user);
+            const avgScore = agg.gamesPlayed > 0 ? Math.round(agg.totalScore / agg.gamesPlayed) : 0;
+            periodTotals[agg.period].scores.push(avgScore);
         });
         
-        // Create summary cards
-        Object.values(periodTotals).forEach(period => {
+        // Sort periods chronologically
+        const sortedPeriods = Object.values(periodTotals).sort((a, b) => {
+            // Try to parse as dates first
+            const dateA = new Date(a.period);
+            const dateB = new Date(b.period);
+            if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                return dateA - dateB;
+            }
+            return a.period.localeCompare(b.period);
+        });
+        
+        // Create summary cards with enhanced stats
+        sortedPeriods.forEach((period, index) => {
             const card = document.createElement('div');
             card.className = 'period-summary-card';
-            const avgScore = Math.round(period.totalScore / period.totalGames);
+            const avgScore = period.totalGames > 0 ? Math.round(period.totalScore / period.totalGames) : 0;
+            const minScore = period.scores.length > 0 ? Math.min(...period.scores) : 0;
+            const maxScore = period.scores.length > 0 ? Math.max(...period.scores) : 0;
+            
+            // Calculate trend from previous period
+            let trend = null;
+            if (index > 0) {
+                const prevPeriod = sortedPeriods[index - 1];
+                const prevAvg = prevPeriod.totalGames > 0 ? Math.round(prevPeriod.totalScore / prevPeriod.totalGames) : 0;
+                trend = avgScore - prevAvg;
+            }
             
             card.innerHTML = `
                 <div class="period-header">
