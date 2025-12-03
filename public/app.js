@@ -1116,10 +1116,13 @@ class MaptapDashboard {
                     <div class="stat-value">${playerData.perfectScores}</div>
                     <div class="stat-label">Perfect Scores</div>
                 </div>
-                <div class="profile-stat-card">
+                <div class="profile-stat-card personal-best-card">
                     <div class="stat-icon">📈</div>
-                    <div class="stat-value">${playerData.highestScore}</div>
-                    <div class="stat-label">Highest Score</div>
+                    <div class="stat-value">
+                        <span class="pb-badge-large" title="Personal Best">🏆</span>
+                        ${playerData.highestScore}
+                    </div>
+                    <div class="stat-label">Highest Score (PB)</div>
                 </div>
                 <div class="profile-stat-card">
                     <div class="stat-icon">📉</div>

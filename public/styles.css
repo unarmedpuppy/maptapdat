@@ -3020,6 +3020,47 @@ a:focus {
     margin-bottom: 0.5rem;
 }
 
+/* Personal Best Highlighting */
+.personal-best-row {
+    background: rgba(255, 0, 193, 0.1) !important;
+    border-left: 4px solid #ff00c1;
+}
+
+.pb-badge {
+    display: inline-block;
+    font-size: 0.9rem;
+    margin-right: 0.25rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.pb-badge-large {
+    display: inline-block;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.pb-score {
+    color: #ff00c1;
+    font-weight: bold;
+}
+
+.personal-best-card {
+    border-color: #ff00c1;
+    box-shadow: 0 0 10px rgba(255, 0, 193, 0.3);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
 .profile-stat-card .stat-value {
     font-size: 2rem;
     font-weight: bold;
