@@ -550,7 +550,7 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ---
 
 ### 20. Metric Tooltips
-**Status:** 🟡 In Progress  
+**Status:** 🟢 Completed  
 **Claimed By:** Composer AI  
 **Priority:** Low  
 **Estimated Effort:** 1 hour
@@ -561,8 +561,8 @@ Create dedicated profile pages for each player with detailed stats, records, and
 3. Explain what each metric means
 
 #### Acceptance Criteria
-- [ ] Tooltips on all metrics
-- [ ] Explanations clear
+- [x] Tooltips on all metrics
+- [x] Explanations clear
 
 ---
 
@@ -666,9 +666,9 @@ Create dedicated profile pages for each player with detailed stats, records, and
 ## Progress Summary
 
 - **Total Tasks:** 25
-- **Completed:** 18
+- **Completed:** 19
 - **In Progress:** 0
-- **Unclaimed:** 7
+- **Unclaimed:** 6
 - **Blocked:** 0
 
 ---
