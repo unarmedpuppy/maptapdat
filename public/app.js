@@ -1058,8 +1058,8 @@ class MaptapDashboard {
         } else if (this.data.aggregations && this.data.aggregations.aggregations) {
             // Period aggregation
             const aggregations = this.data.aggregations.aggregations;
-            const periods = [...new Set(aggregations.map(a => a.period))].sort();
-            labels = periods;
+            const uniquePeriods = [...new Set(aggregations.map(a => a.period))].sort();
+            labels = uniquePeriods;
             
             // Group by player
             const playerAggregations = {};
@@ -1071,7 +1071,7 @@ class MaptapDashboard {
             });
             
             Object.entries(playerAggregations).forEach(([player, periodMap], index) => {
-                const data = periods.map(period => {
+                const data = uniquePeriods.map(period => {
                     const agg = periodMap[period];
                     return agg ? Math.round(agg.totalScore / agg.gamesPlayed) : null;
                 });
