@@ -113,116 +113,165 @@ class MaptapDashboard {
         });
         
         // Theme toggle
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            this.toggleTheme();
-        });
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+            });
+        }
         
         // High contrast toggle
-        document.getElementById('high-contrast-toggle').addEventListener('click', () => {
-            this.toggleHighContrast();
-        });
+        const highContrastToggle = document.getElementById('high-contrast-toggle');
+        if (highContrastToggle) {
+            highContrastToggle.addEventListener('click', () => {
+                this.toggleHighContrast();
+            });
+        }
         
         // Keyboard navigation
         this.setupKeyboardNavigation();
         
         // Filters toggle
-        document.getElementById('filters-toggle').addEventListener('click', () => {
-            this.openFilters();
-        });
+        const filtersToggle = document.getElementById('filters-toggle');
+        if (filtersToggle) {
+            filtersToggle.addEventListener('click', () => {
+                this.openFilters();
+            });
+        }
         
         // Filters close
-        document.getElementById('filters-close').addEventListener('click', () => {
-            this.closeFilters();
-        });
+        const filtersClose = document.getElementById('filters-close');
+        if (filtersClose) {
+            filtersClose.addEventListener('click', () => {
+                this.closeFilters();
+            });
+        }
         
         // Enhanced Filters
         // Player search (fuzzy matching) - debounced
-        document.getElementById('player-search').addEventListener('input', (e) => {
-            this.currentFilters.searchQuery = e.target.value.toLowerCase();
-            this.filterPlayerOptions();
-            this.debounceApplyFilters();
-        });
+        const playerSearch = document.getElementById('player-search');
+        if (playerSearch) {
+            playerSearch.addEventListener('input', (e) => {
+                this.currentFilters.searchQuery = e.target.value.toLowerCase();
+                this.filterPlayerOptions();
+                this.debounceApplyFilters();
+            });
+        }
         
         // Multi-select player filter
-        document.getElementById('player-filter').addEventListener('change', (e) => {
-            const selected = Array.from(e.target.selectedOptions).map(opt => opt.value).filter(v => v);
-            this.currentFilters.players = selected;
-            this.applyFilters();
-        });
+        const playerFilter = document.getElementById('player-filter');
+        if (playerFilter) {
+            playerFilter.addEventListener('change', (e) => {
+                const selected = Array.from(e.target.selectedOptions).map(opt => opt.value).filter(v => v);
+                this.currentFilters.players = selected;
+                this.applyFilters();
+            });
+        }
         
         // Date range picker
-        document.getElementById('date-range-start').addEventListener('change', (e) => {
-            this.currentFilters.dateRangeStart = e.target.value;
-            this.currentFilters.date = ''; // Clear quick date when using range
-            document.getElementById('date-filter').value = '';
-            this.applyFilters();
-        });
+        const dateRangeStart = document.getElementById('date-range-start');
+        if (dateRangeStart) {
+            dateRangeStart.addEventListener('change', (e) => {
+                this.currentFilters.dateRangeStart = e.target.value;
+                this.currentFilters.date = ''; // Clear quick date when using range
+                const dateFilter = document.getElementById('date-filter');
+                if (dateFilter) dateFilter.value = '';
+                this.applyFilters();
+            });
+        }
         
-        document.getElementById('date-range-end').addEventListener('change', (e) => {
-            this.currentFilters.dateRangeEnd = e.target.value;
-            this.currentFilters.date = ''; // Clear quick date when using range
-            document.getElementById('date-filter').value = '';
-            this.applyFilters();
-        });
+        const dateRangeEnd = document.getElementById('date-range-end');
+        if (dateRangeEnd) {
+            dateRangeEnd.addEventListener('change', (e) => {
+                this.currentFilters.dateRangeEnd = e.target.value;
+                this.currentFilters.date = ''; // Clear quick date when using range
+                const dateFilter = document.getElementById('date-filter');
+                if (dateFilter) dateFilter.value = '';
+                this.applyFilters();
+            });
+        }
         
         // Quick date filter
-        document.getElementById('date-filter').addEventListener('change', (e) => {
-            this.currentFilters.date = e.target.value;
-            // Clear date range when using quick date
-            if (e.target.value) {
-                this.currentFilters.dateRangeStart = '';
-                this.currentFilters.dateRangeEnd = '';
-                document.getElementById('date-range-start').value = '';
-                document.getElementById('date-range-end').value = '';
-            }
-            
-            // Update URL hash if we're on leaderboard section
-            if (this.currentSection === 'leaderboard') {
+        const dateFilter = document.getElementById('date-filter');
+        if (dateFilter) {
+            dateFilter.addEventListener('change', (e) => {
+                this.currentFilters.date = e.target.value;
+                // Clear date range when using quick date
                 if (e.target.value) {
-                    window.location.hash = `leaderboard?date=${e.target.value}`;
-                } else {
-                    window.location.hash = 'leaderboard';
+                    this.currentFilters.dateRangeStart = '';
+                    this.currentFilters.dateRangeEnd = '';
+                    const startEl = document.getElementById('date-range-start');
+                    const endEl = document.getElementById('date-range-end');
+                    if (startEl) startEl.value = '';
+                    if (endEl) endEl.value = '';
                 }
-            }
-            
-            this.updateLeaderboardSortIndicator();
-            this.applyFilters();
-        });
+                
+                // Update URL hash if we're on leaderboard section
+                if (this.currentSection === 'leaderboard') {
+                    if (e.target.value) {
+                        window.location.hash = `leaderboard?date=${e.target.value}`;
+                    } else {
+                        window.location.hash = 'leaderboard';
+                    }
+                }
+                
+                this.updateLeaderboardSortIndicator();
+                this.applyFilters();
+            });
+        }
         
         // Score range filter - debounced
-        document.getElementById('score-range-min').addEventListener('input', (e) => {
-            this.currentFilters.scoreMin = e.target.value ? parseInt(e.target.value) : '';
-            this.debounceApplyFilters();
-        });
+        const scoreRangeMin = document.getElementById('score-range-min');
+        if (scoreRangeMin) {
+            scoreRangeMin.addEventListener('input', (e) => {
+                this.currentFilters.scoreMin = e.target.value ? parseInt(e.target.value) : '';
+                this.debounceApplyFilters();
+            });
+        }
         
-        document.getElementById('score-range-max').addEventListener('input', (e) => {
-            this.currentFilters.scoreMax = e.target.value ? parseInt(e.target.value) : '';
-            this.debounceApplyFilters();
-        });
+        const scoreRangeMax = document.getElementById('score-range-max');
+        if (scoreRangeMax) {
+            scoreRangeMax.addEventListener('input', (e) => {
+                this.currentFilters.scoreMax = e.target.value ? parseInt(e.target.value) : '';
+                this.debounceApplyFilters();
+            });
+        }
         
         // Sort filter
-        document.getElementById('sort-filter').addEventListener('change', (e) => {
-            this.currentFilters.sort = e.target.value;
-            this.updateLeaderboardSortIndicator();
-            this.applyFilters();
-        });
+        const sortFilter = document.getElementById('sort-filter');
+        if (sortFilter) {
+            sortFilter.addEventListener('change', (e) => {
+                this.currentFilters.sort = e.target.value;
+                this.updateLeaderboardSortIndicator();
+                this.applyFilters();
+            });
+        }
         
         // Clear filters button
-        document.getElementById('clear-filters').addEventListener('click', () => {
-            this.clearAllFilters();
-        });
+        const clearFilters = document.getElementById('clear-filters');
+        if (clearFilters) {
+            clearFilters.addEventListener('click', () => {
+                this.clearAllFilters();
+            });
+        }
         
         // Save filter preset
-        document.getElementById('save-filter-preset').addEventListener('click', () => {
-            this.saveFilterPreset();
-        });
+        const saveFilterPreset = document.getElementById('save-filter-preset');
+        if (saveFilterPreset) {
+            saveFilterPreset.addEventListener('click', () => {
+                this.saveFilterPreset();
+            });
+        }
         
         // Load filter preset
-        document.getElementById('filter-presets').addEventListener('change', (e) => {
-            if (e.target.value) {
-                this.loadFilterPreset(e.target.value);
-            }
-        });
+        const filterPresets = document.getElementById('filter-presets');
+        if (filterPresets) {
+            filterPresets.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    this.loadFilterPreset(e.target.value);
+                }
+            });
+        }
         
         // Raw data controls
         document.getElementById('export-csv').addEventListener('click', () => {
@@ -303,79 +352,122 @@ class MaptapDashboard {
         });
         
         // Leaderboard controls
-        document.getElementById('overall-leaderboard').addEventListener('click', () => {
-            this.currentFilters.date = '';
-            this.currentFilters.sort = 'avgScore';
-            document.getElementById('date-filter').value = '';
-            document.getElementById('sort-filter').value = 'avgScore';
-            this.hideLeaderboardDate();
-            this.showLeaderboardSort('avgScore');
-            this.applyFilters();
-            this.updateLeaderboard();
-        });
+        const overallLeaderboard = document.getElementById('overall-leaderboard');
+        if (overallLeaderboard) {
+            overallLeaderboard.addEventListener('click', () => {
+                this.currentFilters.date = '';
+                this.currentFilters.sort = 'avgScore';
+                const dateFilter = document.getElementById('date-filter');
+                const sortFilter = document.getElementById('sort-filter');
+                if (dateFilter) dateFilter.value = '';
+                if (sortFilter) sortFilter.value = 'avgScore';
+                this.hideLeaderboardDate();
+                this.showLeaderboardSort('avgScore');
+                this.applyFilters();
+                this.updateLeaderboard();
+            });
+        }
         
-        document.getElementById('daily-leaderboard').addEventListener('click', () => {
-            // Set to most recent date
-            const mostRecentDate = this.getMostRecentDate();
-            this.currentFilters.date = mostRecentDate;
-            this.currentFilters.sort = 'totalScore';
-            document.getElementById('date-filter').value = mostRecentDate;
-            document.getElementById('sort-filter').value = 'totalScore';
-            
-            // Update URL hash with date parameter
-            window.location.hash = `leaderboard?date=${mostRecentDate}`;
-            
-            this.updateLeaderboardSortIndicator();
-            this.applyFilters();
-            this.updateLeaderboard();
-        });
+        const dailyLeaderboard = document.getElementById('daily-leaderboard');
+        if (dailyLeaderboard) {
+            dailyLeaderboard.addEventListener('click', () => {
+                // Set to most recent date
+                const mostRecentDate = this.getMostRecentDate();
+                this.currentFilters.date = mostRecentDate;
+                this.currentFilters.sort = 'totalScore';
+                const dateFilter = document.getElementById('date-filter');
+                const sortFilter = document.getElementById('sort-filter');
+                if (dateFilter) dateFilter.value = mostRecentDate;
+                if (sortFilter) sortFilter.value = 'totalScore';
+                
+                // Update URL hash with date parameter
+                window.location.hash = `leaderboard?date=${mostRecentDate}`;
+                
+                this.updateLeaderboardSortIndicator();
+                this.applyFilters();
+                this.updateLeaderboard();
+            });
+        }
         
         // Comparison feature event listeners
-        document.getElementById('compare-players-btn').addEventListener('click', () => {
-            this.openComparisonModal();
-        });
+        const comparePlayersBtn = document.getElementById('compare-players-btn');
+        if (comparePlayersBtn) {
+            comparePlayersBtn.addEventListener('click', () => {
+                this.openComparisonModal();
+            });
+        }
         
-        document.getElementById('comparison-modal-close').addEventListener('click', () => {
-            this.closeComparisonModal();
-        });
+        const comparisonModalClose = document.getElementById('comparison-modal-close');
+        if (comparisonModalClose) {
+            comparisonModalClose.addEventListener('click', () => {
+                this.closeComparisonModal();
+            });
+        }
         
-        document.getElementById('cancel-comparison').addEventListener('click', () => {
-            this.closeComparisonModal();
-        });
+        const cancelComparison = document.getElementById('cancel-comparison');
+        if (cancelComparison) {
+            cancelComparison.addEventListener('click', () => {
+                this.closeComparisonModal();
+            });
+        }
         
-        document.getElementById('apply-comparison').addEventListener('click', () => {
-            this.applyComparison();
-        });
+        const applyComparison = document.getElementById('apply-comparison');
+        if (applyComparison) {
+            applyComparison.addEventListener('click', () => {
+                this.applyComparison();
+            });
+        }
         
-        document.getElementById('clear-comparison').addEventListener('click', () => {
-            this.clearComparison();
-        });
+        const clearComparison = document.getElementById('clear-comparison');
+        if (clearComparison) {
+            clearComparison.addEventListener('click', () => {
+                this.clearComparison();
+            });
+        }
         
-        // Time-based aggregation event listeners
-        document.getElementById('period-selector').addEventListener('change', (e) => {
-            this.currentPeriod = e.target.value;
-            this.updateTrends();
-        });
+        // Time-based aggregation event listeners (legacy - check if exists)
+        const legacyPeriodSelector = document.getElementById('period-selector');
+        if (legacyPeriodSelector) {
+            legacyPeriodSelector.addEventListener('change', (e) => {
+                this.currentPeriod = e.target.value;
+                this.updateTrends();
+            });
+        }
         
-        document.getElementById('show-rolling-average').addEventListener('change', (e) => {
-            this.showRollingAverage = e.target.checked;
-            this.createTrendsChart();
-        });
+        const rollingAverageToggle = document.getElementById('show-rolling-average');
+        if (rollingAverageToggle) {
+            rollingAverageToggle.addEventListener('change', (e) => {
+                this.showRollingAverage = e.target.checked;
+                this.createTrendsChart();
+            });
+        }
         
-        document.getElementById('last-7-days').addEventListener('click', () => {
-            this.setDateRange(7);
-        });
+        const last7Days = document.getElementById('last-7-days');
+        if (last7Days) {
+            last7Days.addEventListener('click', () => {
+                this.setDateRange(7);
+            });
+        }
         
-        document.getElementById('last-30-days').addEventListener('click', () => {
-            this.setDateRange(30);
-        });
+        const last30Days = document.getElementById('last-30-days');
+        if (last30Days) {
+            last30Days.addEventListener('click', () => {
+                this.setDateRange(30);
+            });
+        }
         
         // Player profile navigation
-        document.getElementById('back-to-leaderboard').addEventListener('click', () => {
-            this.showSection('leaderboard');
-            window.location.hash = 'leaderboard';
-            document.getElementById('profile-nav-item').classList.add('hidden');
-        });
+        const backToLeaderboard = document.getElementById('back-to-leaderboard');
+        if (backToLeaderboard) {
+            backToLeaderboard.addEventListener('click', () => {
+                this.showSection('leaderboard');
+                window.location.hash = 'leaderboard';
+                const profileNavItem = document.getElementById('profile-nav-item');
+                if (profileNavItem) {
+                    profileNavItem.classList.add('hidden');
+                }
+            });
+        }
         
         // Make player names clickable in leaderboard
         setTimeout(() => {
