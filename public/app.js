@@ -1495,6 +1495,54 @@ class MaptapDashboard {
         }, 60000); // Update every minute
     }
     
+    updateHighestDailyScore(games) {
+        const highestDailyScoreElement = document.getElementById('highest-daily-score');
+        if (!highestDailyScoreElement) return;
+        
+        if (!games || games.length === 0) {
+            highestDailyScoreElement.textContent = 'No Data';
+            return;
+        }
+        
+        // Group games by user-date to get unique games per user per day
+        const dailyScores = {};
+        
+        games.forEach(game => {
+            const key = `${game.user}-${game.date}`;
+            if (!dailyScores[key]) {
+                dailyScores[key] = {
+                    user: game.user,
+                    date: game.date,
+                    totalScore: game.total_score
+                };
+            }
+        });
+        
+        // Find the highest daily score
+        let highestScore = 0;
+        let highestScoreEntry = null;
+        
+        Object.values(dailyScores).forEach(entry => {
+            if (entry.totalScore > highestScore) {
+                highestScore = entry.totalScore;
+                highestScoreEntry = entry;
+            }
+        });
+        
+        if (highestScoreEntry) {
+            // Format date for display
+            const date = new Date(highestScoreEntry.date);
+            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            highestDailyScoreElement.innerHTML = `
+                <div style="font-size: 1.2rem; font-weight: bold;">${highestScore}</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">${highestScoreEntry.user}</div>
+                <div style="font-size: 0.8rem; opacity: 0.6;">${formattedDate}</div>
+            `;
+        } else {
+            highestDailyScoreElement.textContent = 'No Data';
+        }
+    }
+    
     calculateDataQuality() {
         const games = this.data.games;
         const dates = [...new Set(games.map(g => g.date))].sort();
