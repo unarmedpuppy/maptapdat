@@ -90,7 +90,8 @@ class MaptapDashboard {
             'total-players': 'Number of unique players who have played at least one game.',
             'perfect-scores': 'Total number of perfect scores achieved. A perfect score is 1000 points (100 points × 5 locations).',
             'date-range': 'The date range covering all games in the dataset, from the first game to the most recent game.',
-            'games-today': 'Number of unique games played today. Each player can have one game per day.'
+            'games-today': 'Number of unique games played today. Each player can have one game per day.',
+            'highest-daily-score': 'The highest single-game score ever achieved by any player, along with the player name and date.'
         };
         
         statCards.forEach(card => {
