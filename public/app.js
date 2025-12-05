@@ -1299,6 +1299,9 @@ class MaptapDashboard {
         // Update games today counter
         this.updateGamesTodayCounter();
         
+        // Update highest daily score ever
+        this.updateHighestDailyScore(this.data.games);
+        
         // Update daily winner and loser using current day's data
         this.updateDailyWinnerLoser(this.data.games);
         

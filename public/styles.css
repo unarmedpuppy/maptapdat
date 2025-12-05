@@ -3517,18 +3517,40 @@ a:focus {
     button {
         min-height: 44px;
         min-width: 44px;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: center;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .btn-sm {
         min-height: 40px;
-        padding: 0.6rem 0.9rem;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.8rem;
     }
     
     .nav-item {
         min-height: 48px;
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: center;
+    }
+    
+    .leaderboard-controls {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .leaderboard-controls .btn {
+        flex: 1 1 auto;
+        min-width: calc(50% - 0.25rem);
     }
     
     .stat-card,
