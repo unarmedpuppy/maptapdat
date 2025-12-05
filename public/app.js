@@ -91,7 +91,7 @@ class MaptapDashboard {
             'perfect-scores': 'Total number of perfect scores achieved. A perfect score is 1000 points (100 points × 5 locations).',
             'date-range': 'The date range covering all games in the dataset, from the first game to the most recent game.',
             'games-today': 'Number of unique games played today. Each player can have one game per day.',
-            'highest-daily-score': 'The highest single-game score ever achieved by any player, along with the player name and date.'
+            'highest-daily-score': 'The highest single day score ever achieved by any player in one game. This is the total score from one day (5 locations), not an average.'
         };
         
         statCards.forEach(card => {
@@ -1505,11 +1505,13 @@ class MaptapDashboard {
         }
         
         // Group games by user-date to get unique games per user per day
+        // Each game represents one day's play (5 locations = 1 game)
         const dailyScores = {};
         
         games.forEach(game => {
             const key = `${game.user}-${game.date}`;
             if (!dailyScores[key]) {
+                // Use total_score which is the sum of all 5 location scores for that day
                 dailyScores[key] = {
                     user: game.user,
                     date: game.date,
@@ -1518,7 +1520,7 @@ class MaptapDashboard {
             }
         });
         
-        // Find the highest daily score
+        // Find the highest single day score (not average, the actual highest score from any one day)
         let highestScore = 0;
         let highestScoreEntry = null;
         
