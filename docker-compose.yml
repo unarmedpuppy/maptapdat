@@ -26,7 +26,7 @@ services:
       - "traefik.http.routers.maptapdat-secure.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
       - "traefik.http.routers.maptapdat-secure.entrypoints=websecure"
       - "traefik.http.routers.maptapdat-secure.tls=true"
-      - "traefik.http.routers.maptapdat-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.maptapdat-secure.tls.certresolver=myresolver"
       - "traefik.http.routers.maptapdat-secure.service=maptapdat"
       # HTTPS redirect
       - "traefik.http.middlewares.maptapdat-redirect.redirectscheme.scheme=https"
