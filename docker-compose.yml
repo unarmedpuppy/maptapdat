@@ -1,5 +1,7 @@
 version: '3.8'
 
+x-external: true
+
 services:
   maptapdat:
     build: .
