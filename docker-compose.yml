@@ -34,7 +34,7 @@ services:
       # Homepage integration
       - "homepage.group=Gaming"
       - "homepage.name=Maptap Data"
-      - "homepage.icon=🗺️"
+      - "homepage.icon=si-openstreetmap"
       - "homepage.href=https://maptapdat.server.unarmedpuppy.com"
       - "homepage.description=Maptap.gg score visualization dashboard"
 
