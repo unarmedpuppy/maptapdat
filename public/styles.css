@@ -936,6 +936,7 @@ tbody tr:last-child td {
 .leaderboard-controls {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 /* Loading overlay */
@@ -1038,6 +1039,13 @@ tbody tr:last-child td {
     
     .leaderboard-controls {
         justify-content: center;
+        width: 100%;
+    }
+
+    .leaderboard-controls .btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        text-align: center;
     }
     
     .chart-container {
@@ -1103,6 +1111,16 @@ tbody tr:last-child td {
     .btn {
         padding: 0.375rem 0.75rem;
         font-size: 0.8rem;
+    }
+
+    .leaderboard-controls {
+        gap: 0.375rem;
+    }
+
+    .leaderboard-controls .btn {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.7rem;
+        min-width: 70px;
     }
 }
 
