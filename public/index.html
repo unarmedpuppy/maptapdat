@@ -3,661 +3,597 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🗺️ maptapdat - data from tappin' dat map daily</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
-    <link rel="stylesheet" href="styles.css?v=20251208b">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <script>
-        // Cache buster for assets
-        const cacheBuster = Date.now();
-        document.addEventListener('DOMContentLoaded', function() {
-            // Update CSS link with cache buster
-            const cssLink = document.querySelector('link[href*="styles.css"]');
-            if (cssLink) {
-                cssLink.href = cssLink.href.split('?')[0] + '?v=' + cacheBuster;
-            }
-        });
-    </script>
+    <title>MAPTAPDAT // Daily Geography Scores</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --green: #00ff41;
+            --dim-green: #00aa2a;
+            --dark-green: #003b00;
+            --amber: #ffb000;
+            --red: #ff0040;
+            --cyan: #00ffff;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+            --bg: #0a0a0a;
+            --panel-bg: #0d1117;
+            --border: #1a3a1a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* CRT scan line effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+            animation: flicker 4s infinite;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-family: 'VT323', monospace;
+            font-size: 2.5rem;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px var(--green), 0 0 20px var(--green);
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            color: var(--dim-green);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .panel-header {
+            background: linear-gradient(90deg, var(--dark-green), transparent);
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--green);
+        }
+
+        .panel-body { padding: 15px; }
+
+        /* Today's Winner */
+        .winner-panel {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .winner-panel .panel-header {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
+        }
+
+        .winner-display {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .winner-name {
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--gold);
+            text-transform: capitalize;
+        }
+
+        .winner-score {
+            font-family: 'VT323', monospace;
+            font-size: 3rem;
+            color: var(--green);
+            text-shadow: 0 0 15px var(--green);
+            margin: 5px 0;
+        }
+
+        .winner-date {
+            font-size: 0.8rem;
+            color: var(--dim-green);
+        }
+
+        /* Leaderboard Table */
+        .leaderboard-table {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--dark-green);
+            color: var(--green);
+            font-weight: normal;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        .rank-1 { color: var(--gold); }
+        .rank-2 { color: var(--silver); }
+        .rank-3 { color: var(--bronze); }
+
+        .rank-cell {
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            min-width: 40px;
+        }
+
+        .player-name {
+            color: var(--cyan);
+            text-transform: capitalize;
+            font-weight: bold;
+        }
+
+        .score-cell {
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+        }
+
+        /* All-Time High Scores */
+        .high-scores-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .high-score-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            border-left: 3px solid;
+        }
+
+        .high-score-item.gold { border-color: var(--gold); }
+        .high-score-item.silver { border-color: var(--silver); }
+        .high-score-item.bronze { border-color: var(--bronze); }
+
+        .hs-rank {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            min-width: 30px;
+        }
+
+        .gold .hs-rank { color: var(--gold); }
+        .silver .hs-rank { color: var(--silver); }
+        .bronze .hs-rank { color: var(--bronze); }
+
+        .hs-info {
+            flex: 1;
+        }
+
+        .hs-player {
+            color: var(--cyan);
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .hs-date {
+            font-size: 0.75rem;
+            color: var(--dim-green);
+        }
+
+        .hs-score {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+        }
+
+        .gold .hs-score { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
+        .silver .hs-score { color: var(--silver); }
+        .bronze .hs-score { color: var(--bronze); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 12px 8px;
+            background: rgba(0, 255, 65, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            color: var(--green);
+            text-shadow: 0 0 5px var(--green);
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--dim-green);
+            letter-spacing: 1px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dim-green);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--dim-green);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .loading-text {
+            animation: blink 1s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 2rem; letter-spacing: 4px; }
+            .header .subtitle { font-size: 0.75rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: 0.75rem; }
+            th, td { padding: 8px 5px; }
+            .winner-name { font-size: 1.5rem; }
+            .winner-score { font-size: 2.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 1.6rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat { padding: 10px 6px; }
+            .stat-value { font-size: 1.3rem; }
+            .stat-label { font-size: 0.6rem; }
+            th, td { padding: 6px 4px; font-size: 0.7rem; }
+            .rank-cell { font-size: 1rem; }
+            .score-cell { font-size: 0.95rem; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--dark-green); border-radius: 4px; }
+    </style>
 </head>
 <body>
-    <!-- Retro "Under Construction" banner -->
-    <div class="construction-banner">
-        <marquee behavior="scroll" direction="left">
-            🗺️ It's time to maptap dat! 🗺️ Daily Geography Game 🗺️ Updated everyday most days! 🗺️ Cool Site 🗺️
-        </marquee>
-    </div>
-    <div class="app">
-        <!-- Header -->
+    <div class="container">
         <header class="header">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1 class="title">🗺️ maptapdat</h1>
-                    <p class="subtitle">data from tappin' dat map daily</p>
-                </div>
-                <div class="header-controls">
-                    <div class="spinning-globe">🌍</div>
-                    <div class="theme-controls">
-                        <div class="theme-label" id="theme-label">Light Mode</div>
-                        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" aria-pressed="false">
-                            <span class="theme-icon">🌙</span>
-                        </button>
-                        <button id="high-contrast-toggle" class="theme-toggle" aria-label="Toggle high contrast mode" aria-pressed="false" title="High Contrast Mode">
-                            <span>🔍</span>
-                        </button>
-                        <button id="keyboard-shortcuts-btn" class="theme-toggle" aria-label="Show keyboard shortcuts" title="Keyboard Shortcuts (?)">
-                            <span>⌨️</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <h1>MAPTAPDAT</h1>
+            <div class="subtitle">tappin' maps & trackin' stats with the homies</div>
         </header>
 
-        <!-- Navigation -->
-        <nav class="nav" role="navigation" aria-label="Main navigation">
-            <div class="swipe-hint">👆 Swipe left/right to navigate</div>
-            <button class="nav-item active" data-section="overview" aria-label="Overview section" aria-current="page">Overview</button>
-            <button class="nav-item" data-section="leaderboard" aria-label="Leaderboard section">Leaderboard</button>
-            <button class="nav-item" data-section="trends" aria-label="Trends section">Trends</button>
-            <button class="nav-item" data-section="analytics" aria-label="Analytics section">Analytics</button>
-            <button class="nav-item" data-section="rawdata" aria-label="Raw Data section">Raw Data</button>
-            <button class="nav-item hidden" data-section="player-profile" id="profile-nav-item" aria-label="Player Profile section">Profile</button>
-        </nav>
-
-        <!-- Filters -->
-        <div class="filters-section">
-            <button id="filters-toggle" class="filters-toggle" aria-label="Open filters">
-                <span class="filters-icon">🔍</span>
-            </button>
-            <div id="filters-content" class="filters-content hidden">
-                <div class="filters-header">
-                    <h3>Filters</h3>
-                    <button id="filters-close" class="filters-close" aria-label="Close filters">
-                        <span>✕</span>
-                    </button>
-                </div>
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="player-search">Search Players:</label>
-                        <label for="player-search" class="sr-only">Search players</label>
-                        <input type="text" id="player-search" placeholder="Type to search players..." class="search-input" aria-label="Search players">
-                    </div>
-                    <div class="filter-group">
-                        <label for="player-filter">Player:</label>
-                        <label for="player-filter" class="sr-only">Filter by players</label>
-                        <select id="player-filter" multiple size="5" class="multi-select" aria-label="Filter by players" aria-multiselectable="true">
-                            <option value="">All Players</option>
-                        </select>
-                        <small class="filter-hint">Hold Ctrl/Cmd to select multiple</small>
-                    </div>
-                    <div class="filter-group">
-                        <label for="date-range-start">Date Range:</label>
-                        <div class="date-range-group">
-                            <input type="date" id="date-range-start" class="date-input" aria-label="Start date">
-                            <span aria-hidden="true">to</span>
-                            <input type="date" id="date-range-end" class="date-input" aria-label="End date">
-                        </div>
-                    </div>
-                    <div class="filter-group">
-                        <label for="date-filter">Quick Date:</label>
-                        <select id="date-filter" aria-label="Quick date filter">
-                            <option value="">All Dates</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="score-range-min">Score Range:</label>
-                        <div class="score-range-group">
-                            <input type="number" id="score-range-min" placeholder="Min" min="0" max="1000" class="score-input" aria-label="Minimum score">
-                            <span aria-hidden="true">to</span>
-                            <input type="number" id="score-range-max" placeholder="Max" min="0" max="1000" class="score-input" aria-label="Maximum score">
-                        </div>
-                    </div>
-                    <div class="filter-group">
-                        <label for="sort-filter">Sort by:</label>
-                        <select id="sort-filter" aria-label="Sort by">
-                            <option value="avgScore">Average Score</option>
-                            <option value="totalScore">Total Score</option>
-                            <option value="perfectScores">Perfect Scores</option>
-                            <option value="gamesPlayed">Games Played</option>
-                        </select>
-                    </div>
-                    <div class="filter-actions">
-                        <button id="clear-filters" class="btn btn-secondary">Clear All</button>
-                        <button id="save-filter-preset" class="btn btn-secondary">Save Preset</button>
-                        <select id="filter-presets" class="filter-presets">
-                            <option value="">Load Preset...</option>
-                        </select>
-                    </div>
+        <!-- Today's Winner -->
+        <div class="panel winner-panel">
+            <div class="panel-header">
+                <span class="panel-title">[ 🏆 TODAY'S WINNER ]</span>
+                <span id="winner-date-label" style="color: var(--dim-green); font-size: 0.8rem;"></span>
+            </div>
+            <div class="panel-body">
+                <div class="winner-display" id="todays-winner">
+                    <div class="loading-text">Loading...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Pull-to-refresh indicator -->
-        <div id="pull-refresh-indicator" class="pull-refresh-indicator">
-            Pull to refresh
-        </div>
-        
-        <!-- Main Content -->
-        <main class="main" id="main-content" role="main">
-            <!-- Overview Section -->
-            <section id="overview" class="section active">
-                <div class="overview-header">
-                    <h2>Overview</h2>
-                    <div id="last-updated-timestamp" class="last-updated-timestamp">
-                        <span class="timestamp-icon">🕐</span>
-                        <span class="timestamp-text">Last updated: Loading...</span>
-                    </div>
-                </div>
-
-                <!-- Featured Hero Card: All-Time High Scores -->
-                <div class="hero-card" id="all-time-high-scores">
-                    <div class="hero-header">
-                        <span class="hero-icon">👑</span>
-                        <h3 class="hero-title">All-Time High Scores</h3>
-                    </div>
-                    <div class="hero-content" id="top-scores-list">
-                        <div class="top-score-item loading">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card winner-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="daily-winner">-</div>
-                            <div class="stat-label">Today's Winner</div>
-                        </div>
-                    </div>
-                    <div class="stat-card loser-card">
-                        <div class="stat-icon">😅</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="daily-loser">-</div>
-                            <div class="stat-label">Today's Loser</div>
-                        </div>
-                    </div>
-                    <div class="stat-card winner-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="overall-winner">-</div>
-                            <div class="stat-label">Overall Winner</div>
-                        </div>
-                    </div>
-                    <div class="stat-card loser-card">
-                        <div class="stat-icon">📉</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="overall-loser">-</div>
-                            <div class="stat-label">Overall Loser</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="most-games">-</div>
-                            <div class="stat-label">Most Games</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎲</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="least-games">-</div>
-                            <div class="stat-label">Least Games</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎮</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="total-games">-</div>
-                            <div class="stat-label">Total Games</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="total-players">-</div>
-                            <div class="stat-label">Players</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="perfect-scores">-</div>
-                            <div class="stat-label">Perfect Scores</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="date-range">-</div>
-                            <div class="stat-label">Date Range</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="games-today">-</div>
-                            <div class="stat-label">Games Today</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Streaks Section -->
-                <div class="streaks-section">
-                    <h3>🔥 Current Streaks</h3>
-                    <div id="current-streaks" class="streaks-grid"></div>
-                    
-                    <h3>🏆 Longest Streaks</h3>
-                    <div id="longest-streaks" class="streaks-grid"></div>
-                </div>
-                
-                <!-- Achievements Section -->
-                <div class="achievements-section">
-                    <h3>🏅 Achievements Leaderboard</h3>
-                    <div id="achievements-leaderboard" class="achievements-leaderboard"></div>
-                </div>
-                
-                <!-- Insights Section -->
-                <div class="insights-section">
-                    <h3>💡 Performance Insights</h3>
-                    <div id="insights-container" class="insights-container"></div>
-                </div>
-                
-                <!-- Predictions Section -->
-                <div class="predictions-section">
-                    <h3>🔮 Predictions</h3>
-                    <div id="predictions-container" class="predictions-container"></div>
-                </div>
-                
-                <!-- Data Quality Section -->
-                <div class="data-quality-section">
-                    <h3>📊 Data Quality</h3>
-                    <div id="data-quality-container" class="data-quality-container"></div>
-                </div>
-            </section>
-
-            <!-- Leaderboard Section -->
-            <section id="leaderboard" class="section">
-                <div class="section-header">
-                    <h2>Leaderboard</h2>
-                    <div class="leaderboard-controls">
-                        <button class="btn btn-secondary" id="overall-leaderboard">Overall</button>
-                        <button class="btn btn-secondary" id="daily-leaderboard">Daily</button>
-                        <button class="btn btn-primary" id="compare-players-btn">Compare Players</button>
-                        <button class="btn btn-secondary" id="export-leaderboard-chart">📥 Export Chart</button>
-                        <button class="btn btn-secondary" id="share-leaderboard-link">🔗 Share Link</button>
-                    </div>
-                </div>
-                <div id="leaderboard-date" class="leaderboard-date hidden"></div>
-                <div id="leaderboard-sort" class="leaderboard-sort hidden"></div>
-                
+        <!-- Leaderboard -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">[ 📊 LEADERBOARD ]</span>
+            </div>
+            <div class="panel-body" style="padding: 0;">
                 <div class="leaderboard-table">
                     <table id="leaderboard-table">
                         <thead>
                             <tr>
-                                <th>Rank</th>
+                                <th>#</th>
                                 <th>Player</th>
-                                <th>Total Score</th>
-                                <th>Avg Score</th>
+                                <th>Total</th>
+                                <th>Avg</th>
                                 <th>Games</th>
-                                <th>Perfect Scores</th>
-                                <th>Lowest Score</th>
+                                <th>Perfect</th>
+                                <th>Low</th>
                                 <th>Streak</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="leaderboard-body">
+                            <tr><td colspan="8" class="loading-text" style="text-align: center; padding: 20px;">Loading...</td></tr>
+                        </tbody>
                     </table>
                 </div>
-                
-                <div class="chart-container">
-                    <canvas id="leaderboard-chart"></canvas>
-                </div>
-                
-                <!-- Comparison View -->
-                <div id="comparison-view" class="comparison-view hidden">
-                    <div class="comparison-header">
-                        <h3>Player Comparison</h3>
-                        <button class="btn btn-secondary" id="clear-comparison">Clear Comparison</button>
-                    </div>
-                    <div id="comparison-stats" class="comparison-stats"></div>
-                    <div id="comparison-head-to-head" class="comparison-head-to-head"></div>
-                    <div class="chart-container">
-                        <canvas id="comparison-chart"></canvas>
-                    </div>
-                </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- Trends Section -->
-            <section id="trends" class="section">
-                <div class="section-header">
-                    <h2>Score Trends</h2>
-                    <div class="trends-controls">
-                        <button class="btn btn-secondary btn-sm" id="export-trends-chart">📥 Export Chart</button>
-                        <button class="btn btn-secondary btn-sm" id="share-trends-link">🔗 Share Link</button>
-                    </div>
+        <!-- All-Time High Scores -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">[ 👑 ALL-TIME HIGH SCORES ]</span>
+            </div>
+            <div class="panel-body">
+                <div class="high-scores-list" id="high-scores-list">
+                    <div class="loading-text" style="text-align: center;">Loading...</div>
                 </div>
-                
-                <!-- Trends Filters -->
-                <div class="trends-filters-panel">
-                    <div class="filter-group">
-                        <label for="trends-period-selector">Period:</label>
-                        <select id="trends-period-selector" class="period-selector">
-                            <option value="day">Daily</option>
-                            <option value="week">Weekly</option>
-                            <option value="month">Monthly</option>
-                            <option value="quarter">Quarterly</option>
-                            <option value="year">Yearly</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="trends-player-select">Players:</label>
-                        <select id="trends-player-select" class="trends-player-select" multiple>
-                            <option value="all" selected>All Players</option>
-                        </select>
-                        <small class="filter-hint">Select specific players or "All Players"</small>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="trends-date-start">Start Date:</label>
-                        <input type="date" id="trends-date-start" class="date-input">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="trends-date-end">End Date:</label>
-                        <input type="date" id="trends-date-end" class="date-input">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="rolling-average-toggle">
-                            <input type="checkbox" id="show-rolling-average">
-                            <span>Show Rolling Averages</span>
-                        </label>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <button class="btn btn-primary btn-sm" id="apply-trends-filters">Apply Filters</button>
-                        <button class="btn btn-secondary btn-sm" id="reset-trends-filters">Reset</button>
-                    </div>
-                    
-                    <div class="quick-filters">
-                        <button class="btn btn-secondary btn-sm" id="last-7-days">Last 7 Days</button>
-                        <button class="btn btn-secondary btn-sm" id="last-30-days">Last 30 Days</button>
-                        <button class="btn btn-secondary btn-sm" id="last-90-days">Last 90 Days</button>
-                    </div>
-                </div>
-                
-                <!-- Trend Insights -->
-                <div id="trend-insights" class="trend-insights"></div>
-                
-                <!-- Main Chart -->
-                <div class="chart-container">
-                    <canvas id="trends-chart"></canvas>
-                </div>
-                
-                <!-- Player Mini Charts -->
-                <div id="player-mini-charts" class="player-mini-charts"></div>
-                
-                <!-- Period Summaries -->
-                <div id="period-summaries" class="period-summaries"></div>
-            </section>
+            </div>
+        </div>
 
-            <!-- Player Profile Section -->
-            <section id="player-profile" class="section">
-                <div class="profile-header">
-                    <button class="btn btn-secondary" id="back-to-leaderboard">← Back to Leaderboard</button>
-                    <h2 id="profile-player-name">Player Profile</h2>
-                </div>
-                <div id="profile-content" class="profile-content">
-                    <!-- Profile stats will be loaded here -->
-                </div>
-            </section>
-
-            <!-- Analytics Section -->
-            <section id="analytics" class="section">
-                <div class="section-header">
-                    <h2>Analytics</h2>
-                    <div class="analytics-controls">
-                        <button class="btn btn-secondary btn-sm" id="export-all-charts">📥 Export All Charts</button>
-                        <button class="btn btn-secondary btn-sm" id="share-analytics-link">🔗 Share Link</button>
+        <!-- Stats -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">[ 📈 STATS ]</span>
+            </div>
+            <div class="panel-body">
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="stat-total-games">-</div>
+                        <div class="stat-label">Total Games</div>
                     </div>
-                </div>
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <h3>Emoji Frequency</h3>
-                        <canvas id="emoji-chart"></canvas>
+                    <div class="stat">
+                        <div class="stat-value" id="stat-total-players">-</div>
+                        <div class="stat-label">Players</div>
                     </div>
-                    <div class="analytics-card">
-                        <h3>User Streaks</h3>
-                        <canvas id="streaks-chart"></canvas>
+                    <div class="stat">
+                        <div class="stat-value" id="stat-perfect-scores">-</div>
+                        <div class="stat-label">Perfect 100s</div>
                     </div>
-                    <div class="analytics-card">
-                        <h3>Perfect Score Leaders</h3>
-                        <canvas id="perfect-leaders-chart"></canvas>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Location Difficulty (Overall)</h3>
-                        <canvas id="location-difficulty-chart"></canvas>
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem;">
-                            Lower average = Harder location
-                        </p>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Score Distribution</h3>
-                        <canvas id="score-distribution-chart"></canvas>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Improvement Trends</h3>
-                        <canvas id="improvement-trends-chart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Advanced Visualizations Section -->
-                <div class="advanced-visualizations-section">
-                    <h3>📊 Advanced Visualizations</h3>
-                    <div class="advanced-viz-grid">
-                        <div class="analytics-card">
-                            <h3>Player Radar Chart</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                                Compare players across multiple dimensions
-                            </p>
-                            <select id="radar-player-select" class="viz-select" aria-label="Select player for radar chart">
-                                <option value="">Select Player...</option>
-                            </select>
-                            <canvas id="radar-chart"></canvas>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Score Distribution Box Plot</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                                Distribution of scores by player
-                            </p>
-                            <canvas id="box-plot-chart"></canvas>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Correlation Analysis</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                                Relationships between metrics
-                            </p>
-                            <div id="correlation-matrix" class="correlation-matrix"></div>
-                        </div>
-                        <div class="analytics-card full-width">
-                            <h3>Activity Calendar Heatmap</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                                Daily activity across all players
-                            </p>
-                            <div id="calendar-heatmap" class="calendar-heatmap-container"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Advanced Analytics Section -->
-                <div class="advanced-analytics-section">
-                    <h3>Player Analytics</h3>
-                    <div id="player-analytics-grid" class="player-analytics-grid"></div>
-                </div>
-                
-                <!-- Location Performance by Player -->
-                <div class="location-performance-section">
-                    <h3>Location Performance by Player</h3>
-                    <div class="location-heatmap-container">
-                        <div id="location-heatmap"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Raw Data Section -->
-            <section id="rawdata" class="section">
-                <div class="section-header">
-                    <h2>Raw CSV Data</h2>
-                    <div class="raw-data-controls">
-                        <button class="btn btn-secondary" id="export-csv">Export CSV</button>
-                        <button class="btn btn-secondary" id="export-filtered-csv">Export Filtered CSV</button>
-                        <button class="btn btn-secondary" id="refresh-data">Refresh</button>
-                        <button class="btn btn-secondary" id="share-rawdata-link">🔗 Share Link</button>
-                        <div class="pagination-controls">
-                            <button class="btn btn-secondary btn-sm" id="prev-page">← Prev</button>
-                            <span id="page-info">Page 1 of 1</span>
-                            <button class="btn btn-secondary btn-sm" id="next-page">Next →</button>
-                            <select id="rows-per-page" class="rows-per-page">
-                                <option value="50">50 rows</option>
-                                <option value="100">100 rows</option>
-                                <option value="200">200 rows</option>
-                                <option value="500">500 rows</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="raw-data-info">
-                    <p>Total Records: <span id="total-records">-</span></p>
-                    <p>Last Updated: <span id="last-updated">-</span></p>
-                </div>
-                
-                <div class="raw-data-table-container">
-                    <table id="raw-data-table" class="raw-data-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Date</th>
-                                <th>Location #</th>
-                                <th>Location Score</th>
-                                <th>Total Score</th>
-                                <th>Emoji</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-
-        <!-- Comparison Modal -->
-        <div id="comparison-modal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Compare Players</h3>
-                    <button class="modal-close" id="comparison-modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>Select 2-3 players to compare:</p>
-                    <div id="comparison-player-selectors"></div>
-                    <div class="comparison-actions">
-                        <button class="btn btn-primary" id="apply-comparison">Compare</button>
-                        <button class="btn btn-secondary" id="cancel-comparison">Cancel</button>
+                    <div class="stat">
+                        <div class="stat-value" id="stat-avg-score">-</div>
+                        <div class="stat-label">Avg Score</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading data...</p>
-        </div>
+        <footer class="footer">
+            MAPTAPDAT // <a href="https://maptap.gg" target="_blank">maptap.gg</a> //
+            <a href="/api/data" download="maptapdat.csv" id="export-csv">Export CSV</a>
+        </footer>
     </div>
 
-    <!-- Retro Maptap Widget -->
-    <div class="maptap-widget" onclick="window.open('https://maptap.gg', '_blank')">
-        <div class="widget-header">
-            <span class="widget-title">🗺️ Play MapTap!</span>
-            <span class="widget-subtitle">Daily Geography Game</span>
-        </div>
-        <iframe 
-            src="https://maptap.gg" 
-            class="widget-iframe"
-            title="MapTap Game"
-            loading="lazy">
-        </iframe>
-        <div class="widget-overlay">
-            <div class="play-button">🎮 CLICK TO PLAY!</div>
-        </div>
-    </div>
+    <script>
+        async function loadData() {
+            try {
+                const [dataRes, leaderboardRes, analyticsRes] = await Promise.all([
+                    fetch('/api/data'),
+                    fetch('/api/leaderboard'),
+                    fetch('/api/analytics')
+                ]);
 
-    <!-- Keyboard Shortcuts Help Modal -->
-    <div id="keyboard-shortcuts-modal" class="modal hidden" role="dialog" aria-labelledby="shortcuts-modal-title" aria-hidden="true">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="shortcuts-modal-title">⌨️ Keyboard Shortcuts</h2>
-                <button class="modal-close" aria-label="Close keyboard shortcuts" onclick="dashboard.closeKeyboardShortcutsModal()">
-                    <span>✕</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="shortcuts-list">
-                    <div class="shortcut-group">
-                        <h3>Navigation</h3>
-                        <div class="shortcut-item">
-                            <kbd>1</kbd>
-                            <span>Overview</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>2</kbd>
-                            <span>Leaderboard</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>3</kbd>
-                            <span>Trends</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>4</kbd>
-                            <span>Analytics</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>5</kbd>
-                            <span>Raw Data</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>←</kbd> / <kbd>→</kbd>
-                            <span>Previous / Next Section</span>
-                        </div>
-                    </div>
-                    <div class="shortcut-group">
-                        <h3>Actions</h3>
-                        <div class="shortcut-item">
-                            <kbd>?</kbd>
-                            <span>Show this help</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Esc</kbd>
-                            <span>Close modals / filters</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Alt</kbd> + <kbd>T</kbd>
-                            <span>Toggle theme</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Alt</kbd> + <kbd>H</kbd>
-                            <span>Toggle high contrast</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="dashboard.closeKeyboardShortcutsModal()">Got it!</button>
-            </div>
-        </div>
-    </div>
+                const data = await dataRes.json();
+                const leaderboard = await leaderboardRes.json();
+                const analytics = await analyticsRes.json();
 
-    <script src="app.js?v=20251208b"></script>
+                renderTodaysWinner(data);
+                renderLeaderboard(leaderboard);
+                renderHighScores(data);
+                renderStats(analytics, leaderboard);
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function renderTodaysWinner(data) {
+            // Group by date to find most recent
+            const byDate = {};
+            data.forEach(g => {
+                if (!byDate[g.date]) byDate[g.date] = {};
+                const key = g.user.toLowerCase();
+                if (!byDate[g.date][key]) {
+                    byDate[g.date][key] = { user: g.user, score: g.total_score };
+                }
+            });
+
+            const dates = Object.keys(byDate).sort().reverse();
+            const mostRecentDate = dates[0];
+
+            if (!mostRecentDate) {
+                document.getElementById('todays-winner').innerHTML = '<div style="color: var(--dim-green);">No data yet</div>';
+                return;
+            }
+
+            const players = Object.values(byDate[mostRecentDate]);
+            const winner = players.reduce((a, b) => a.score > b.score ? a : b);
+
+            const dateObj = new Date(mostRecentDate + 'T00:00:00');
+            const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+            document.getElementById('winner-date-label').textContent = formattedDate;
+            document.getElementById('todays-winner').innerHTML = `
+                <div class="winner-name">${winner.user}</div>
+                <div class="winner-score">${winner.score}</div>
+                <div class="winner-date">${players.length} player${players.length !== 1 ? 's' : ''} competed</div>
+            `;
+        }
+
+        function renderLeaderboard(leaderboard) {
+            const tbody = document.getElementById('leaderboard-body');
+
+            if (!leaderboard || leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--dim-green);">No data</td></tr>';
+                return;
+            }
+
+            // Sort by average score descending
+            leaderboard.sort((a, b) => b.avgScore - a.avgScore);
+
+            tbody.innerHTML = leaderboard.map((player, idx) => {
+                const rank = idx + 1;
+                const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+
+                return `
+                    <tr>
+                        <td class="rank-cell ${rankClass}">${rankDisplay}</td>
+                        <td class="player-name">${player.user}</td>
+                        <td class="score-cell">${player.totalScore.toLocaleString()}</td>
+                        <td class="score-cell">${player.avgScore.toFixed(0)}</td>
+                        <td>${player.gamesPlayed}</td>
+                        <td>${player.perfectScores || 0}</td>
+                        <td>${player.lowestScore || '-'}</td>
+                        <td>${player.currentStreak || 0}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderHighScores(data) {
+            // Group by user-date to get unique games
+            const games = {};
+            data.forEach(g => {
+                const key = `${g.user.toLowerCase()}-${g.date}`;
+                if (!games[key]) {
+                    games[key] = { user: g.user, date: g.date, score: g.total_score };
+                }
+            });
+
+            // Sort by score and get top 3
+            const top3 = Object.values(games)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            const container = document.getElementById('high-scores-list');
+
+            if (top3.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--dim-green);">No data</div>';
+                return;
+            }
+
+            const medals = ['gold', 'silver', 'bronze'];
+            const rankEmojis = ['🥇', '🥈', '🥉'];
+
+            container.innerHTML = top3.map((entry, idx) => {
+                const dateObj = new Date(entry.date + 'T00:00:00');
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                return `
+                    <div class="high-score-item ${medals[idx]}">
+                        <div class="hs-rank">${rankEmojis[idx]}</div>
+                        <div class="hs-info">
+                            <div class="hs-player">${entry.user}</div>
+                            <div class="hs-date">${formattedDate}</div>
+                        </div>
+                        <div class="hs-score">${entry.score}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStats(analytics, leaderboard) {
+            document.getElementById('stat-total-games').textContent = analytics.totalGames || 0;
+            document.getElementById('stat-total-players').textContent = analytics.uniquePlayers || 0;
+
+            // Count perfect 100 location scores
+            const perfectCount = analytics.perfectScoreLeaders?.reduce((sum, p) => sum + (p.perfectScores || 0), 0) || 0;
+            document.getElementById('stat-perfect-scores').textContent = perfectCount;
+
+            // Calculate overall average
+            if (leaderboard && leaderboard.length > 0) {
+                const totalScores = leaderboard.reduce((sum, p) => sum + p.totalScore, 0);
+                const totalGames = leaderboard.reduce((sum, p) => sum + p.gamesPlayed, 0);
+                const avgScore = totalGames > 0 ? Math.round(totalScores / totalGames) : 0;
+                document.getElementById('stat-avg-score').textContent = avgScore;
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
 </body>
 </html>
