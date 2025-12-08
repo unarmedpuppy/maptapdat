@@ -651,6 +651,157 @@ body {
     border-style: inset;
 }
 
+/* Hero Card - Featured All-Time High Scores */
+.hero-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border: 3px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), var(--shadow-lg);
+    animation: heroGlow 4s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+    animation: heroShimmer 6s linear infinite;
+}
+
+@keyframes heroGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), var(--shadow-lg); }
+    50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.3), var(--shadow-lg); }
+}
+
+@keyframes heroShimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hero-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-icon {
+    font-size: 2.5rem;
+    animation: crownBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px gold);
+}
+
+@keyframes crownBounce {
+    0%, 100% { transform: scale(1) rotate(-5deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+}
+
+.hero-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: gold;
+    text-shadow: 0 0 20px gold, 0 0 40px orange;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.top-score-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.top-score-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.top-score-item.rank-1 {
+    border-color: gold;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.top-score-item.rank-2 {
+    border-color: silver;
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.top-score-item.rank-3 {
+    border-color: #cd7f32;
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.top-score-item.loading {
+    border-color: var(--text-secondary);
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.score-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+.rank-1 .score-rank { color: gold; text-shadow: 0 0 10px gold; }
+.rank-2 .score-rank { color: silver; text-shadow: 0 0 10px silver; }
+.rank-3 .score-rank { color: #cd7f32; text-shadow: 0 0 10px #cd7f32; }
+
+.score-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.score-player {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    text-transform: capitalize;
+}
+
+.score-date {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.score-value {
+    font-size: 1.75rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    min-width: 80px;
+    text-align: right;
+}
+
+.rank-1 .score-value { color: gold; text-shadow: 0 0 15px gold; }
+.rank-2 .score-value { color: silver; text-shadow: 0 0 10px silver; }
+.rank-3 .score-value { color: #cd7f32; text-shadow: 0 0 10px #cd7f32; }
+
 /* Winner and Loser Card Styling */
 .winner-card {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -1055,17 +1206,40 @@ tbody tr:last-child td {
     .stat-card {
         padding: 1rem;
     }
-    
+
     .stat-icon {
         font-size: 1.5rem;
         width: 2.5rem;
         height: 2.5rem;
     }
-    
+
     .stat-value {
         font-size: 1.25rem;
     }
-    
+
+    /* Hero card mobile */
+    .hero-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-icon {
+        font-size: 2rem;
+    }
+
+    .hero-title {
+        font-size: 1.2rem;
+    }
+
+    .score-value {
+        font-size: 1.4rem;
+        min-width: 60px;
+    }
+
+    .score-player {
+        font-size: 1rem;
+    }
+
     /* Make table responsive */
     .leaderboard-table {
         overflow-x: auto;

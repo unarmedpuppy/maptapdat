@@ -1495,18 +1495,18 @@ class MaptapDashboard {
     }
     
     updateHighestDailyScore(games) {
-        const highestDailyScoreElement = document.getElementById('highest-daily-score');
-        if (!highestDailyScoreElement) return;
-        
+        const topScoresContainer = document.getElementById('top-scores-list');
+        if (!topScoresContainer) return;
+
         if (!games || games.length === 0) {
-            highestDailyScoreElement.textContent = 'No Data';
+            topScoresContainer.innerHTML = '<div class="top-score-item loading">No Data</div>';
             return;
         }
-        
+
         // Group games by user-date to get unique games per user per day
         // Each game represents one day's play (5 locations = 1 game)
         const dailyScores = {};
-        
+
         games.forEach(game => {
             const key = `${game.user}-${game.date}`;
             if (!dailyScores[key]) {
@@ -1518,30 +1518,35 @@ class MaptapDashboard {
                 };
             }
         });
-        
-        // Find the highest single day score (not average, the actual highest score from any one day)
-        let highestScore = 0;
-        let highestScoreEntry = null;
-        
-        Object.values(dailyScores).forEach(entry => {
-            if (entry.totalScore > highestScore) {
-                highestScore = entry.totalScore;
-                highestScoreEntry = entry;
-            }
-        });
-        
-        if (highestScoreEntry) {
-            // Format date for display
-            const date = new Date(highestScoreEntry.date);
-            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            highestDailyScoreElement.innerHTML = `
-                <div style="font-size: 1.2rem; font-weight: bold;">${highestScore}</div>
-                <div style="font-size: 0.9rem; opacity: 0.8;">${highestScoreEntry.user}</div>
-                <div style="font-size: 0.8rem; opacity: 0.6;">${formattedDate}</div>
-            `;
-        } else {
-            highestDailyScoreElement.textContent = 'No Data';
+
+        // Sort by score descending and get top 3
+        const sortedScores = Object.values(dailyScores)
+            .sort((a, b) => b.totalScore - a.totalScore)
+            .slice(0, 3);
+
+        if (sortedScores.length === 0) {
+            topScoresContainer.innerHTML = '<div class="top-score-item loading">No Data</div>';
+            return;
         }
+
+        // Build HTML for top 3 scores
+        const rankEmojis = ['🥇', '🥈', '🥉'];
+        topScoresContainer.innerHTML = sortedScores.map((entry, index) => {
+            const date = new Date(entry.date);
+            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const rank = index + 1;
+
+            return `
+                <div class="top-score-item rank-${rank}">
+                    <div class="score-rank">${rankEmojis[index]}</div>
+                    <div class="score-details">
+                        <div class="score-player">${entry.user}</div>
+                        <div class="score-date">${formattedDate}</div>
+                    </div>
+                    <div class="score-value">${entry.totalScore}</div>
+                </div>
+            `;
+        }).join('');
     }
     
     calculateDataQuality() {

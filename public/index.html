@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🗺️ maptapdat - data from tappin' dat map daily</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
-    <link rel="stylesheet" href="styles.css?v=20251208">
+    <link rel="stylesheet" href="styles.css?v=20251208b">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
@@ -150,6 +150,18 @@
                         <span class="timestamp-text">Last updated: Loading...</span>
                     </div>
                 </div>
+
+                <!-- Featured Hero Card: All-Time High Scores -->
+                <div class="hero-card" id="all-time-high-scores">
+                    <div class="hero-header">
+                        <span class="hero-icon">👑</span>
+                        <h3 class="hero-title">All-Time High Scores</h3>
+                    </div>
+                    <div class="hero-content" id="top-scores-list">
+                        <div class="top-score-item loading">Loading...</div>
+                    </div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card winner-card">
                         <div class="stat-icon">🏆</div>
@@ -226,13 +238,6 @@
                         <div class="stat-content">
                             <div class="stat-value" id="games-today">-</div>
                             <div class="stat-label">Games Today</div>
-                        </div>
-                    </div>
-                    <div class="stat-card winner-card">
-                        <div class="stat-icon">👑</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="highest-daily-score">-</div>
-                            <div class="stat-label">Highest Single Day Score</div>
                         </div>
                     </div>
                 </div>
@@ -653,6 +658,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20251208"></script>
+    <script src="app.js?v=20251208b"></script>
 </body>
 </html>
