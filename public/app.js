@@ -667,10 +667,9 @@ class MaptapDashboard {
             // Update players list with normalized names
             this.data.players = [...new Set(this.data.games.map(game => game.user))].sort();
             
-            // Set default to daily leaderboard (most recent date)
-            const mostRecentDate = this.getMostRecentDate();
-            this.currentFilters.date = mostRecentDate;
-            this.currentFilters.sort = 'totalScore';
+            // Set default to overall leaderboard (all dates, sorted by avg score)
+            this.currentFilters.date = '';
+            this.currentFilters.sort = 'avgScore';
             
             this.populateFilters();
             this.applyFilters();
