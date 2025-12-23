@@ -1,43 +1,9 @@
-version: '3.8'
-
-x-external: true
+# Local development docker-compose
+# For production deployment, see the home-server repo
 
 services:
   maptapdat:
     build: .
     container_name: maptapdat
-    restart: unless-stopped
-    environment:
-      - TZ=${TZ:-America/Chicago}
-      - PORT=3000
     ports:
-      - "8199:3000"
-    volumes:
-      - ./data.csv:/app/data.csv:ro
-    networks:
-      - my-network
-    labels:
-      - "traefik.enable=true"
-      # HTTP configuration
-      - "traefik.http.routers.maptapdat.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.maptapdat.entrypoints=web"
-      - "traefik.http.services.maptapdat.loadbalancer.server.port=3000"
-      # HTTPS configuration
-      - "traefik.http.routers.maptapdat-secure.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.maptapdat-secure.entrypoints=websecure"
-      - "traefik.http.routers.maptapdat-secure.tls=true"
-      - "traefik.http.routers.maptapdat-secure.tls.certresolver=myresolver"
-      - "traefik.http.routers.maptapdat-secure.service=maptapdat"
-      # HTTPS redirect
-      - "traefik.http.middlewares.maptapdat-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.maptapdat.middlewares=maptapdat-redirect"
-      # Homepage integration
-      - "homepage.group=Gaming"
-      - "homepage.name=Maptap Data"
-      - "homepage.icon=si-openstreetmap"
-      - "homepage.href=https://maptapdat.server.unarmedpuppy.com"
-      - "homepage.description=Maptap.gg score visualization dashboard"
-
-networks:
-  my-network:
-    external: true
+      - "8080:80"
