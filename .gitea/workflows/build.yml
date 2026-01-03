@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: homelab/workflows/.gitea/workflows/docker-build.yml@main
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
     with:
       image_name: library/maptapdat
       app_path: apps/maptapdat
